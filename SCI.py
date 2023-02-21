@@ -7,6 +7,23 @@ from datetime import datetime
 import os
 import shutil
 
+#Conexion a Firebase Storage
+import pyrebase
+
+firebaseConfig = {
+    "apiKey": "AIzaSyA_QQZNU0vBCJhhmedvg-X1xDnBi2w44BA",
+    "authDomain": "credenciales-uteycv.firebaseapp.com",
+    "projectId": "credenciales-uteycv",
+    "storageBucket": "credenciales-uteycv.appspot.com",
+    "messagingSenderId": "722175152275",
+    "appId": "1:722175152275:web:8ac288aa49373e7259bd66",
+    "measurementId": "G-Q6BCTG1MEB"}
+
+firebase = pyrebase.initialize_app(firebaseConfig)
+
+#Configurar el almacenamiento de Firebase
+storage = firebase.storage()
+
 #Funcion que recupera la fecha actual en formato amigable
 def FechaActualCompleta(date):
     months = ("ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE")
@@ -78,7 +95,6 @@ for row in range(1):
     myCanvas.drawCentredString(width/2,700,Nombre)
     myCanvas.drawCentredString(width/2,650,Apellidos)
     myCanvas.drawCentredString(width/2,590,Empleado)
-    
 
     myCanvas.setFont("Helvetica", 30)
     myCanvas.drawCentredString(width/2,450,'VIGENCIA: ')
@@ -101,3 +117,10 @@ for row in range(1):
     CodigoQR = qrcode.make(f'{nombrePDF}.pdf')
     CodigoQR.save(f'CodigosQR/{nombrePDF}.png')
     myCanvas.save()
+
+    file = f'PDFs/{nombrePDF}.pdf'
+    cloudfilename = f'PDFs/{nombrePDF}.pdf'
+
+    storage.child(cloudfilename).put(file)
+
+    print(storage.child(cloudfilename).get_url(None))
