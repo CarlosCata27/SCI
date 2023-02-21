@@ -8,7 +8,7 @@ import os
 import shutil
 
 #Funcion que recupera la fecha actual en formato amigable
-def FechaActual(date):
+def FechaActualCompleta(date):
     months = ("ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE")
     day = date.day
     month = months[date.month - 1]
@@ -24,7 +24,7 @@ def LogoUPIITA():
 
 # Load the Excel file
 archivo = pd.ExcelFile('Credenciales.xlsx')
-df = pd.read_excel(archivo,'Hoja 1',usecols='A:G',skiprows=range(1))
+df = pd.read_excel(archivo,'Hoja 1',usecols='A:I',skiprows=range(1))
 
 DFDatos = pd.DataFrame({
     'Nombre':df.iloc[:,0],
@@ -33,7 +33,9 @@ DFDatos = pd.DataFrame({
     'Apellido Materno':df.iloc[:,3],
     'Sede':df.iloc[:,4],
     'Folio':df.iloc[:,5],
-    'Registro Postgrado':df.iloc[:,6]
+    'Registro Postgrado':df.iloc[:,6],
+    'Vigencia':df.iloc[:,7],
+    'Numero Empleado':df.iloc[:,8],
 })
 
 DFDatos['Nombre'] = DFDatos['Nombre'].replace(pd.NA,0)
@@ -48,6 +50,8 @@ DFDatos['Apellido Materno'] = DFDatos['Apellido Materno'].map(lambda x: x.lstrip
 
 DFDatos['Folio'] = DFDatos['Folio'].map(lambda x: x.lstrip('FOLIO:'))
 
+DFDatos['Numero Empleado'] = DFDatos['Numero Empleado'].astype(int)
+
 if(os.path.exists('CodigosQR') or os.path.exists('PDFs')):
     shutil.rmtree('/CodigosQR', ignore_errors=True)
     shutil.rmtree('/PDFs', ignore_errors=True)
@@ -55,8 +59,8 @@ else:
     os.mkdir('CodigosQR')
     os.mkdir('PDFs')
 
-for row in range(len(DFDatos.index)):
-#for row in range(1):
+#for row in range(len(DFDatos.index)):
+for row in range(1):
     nombrePDF = str(DFDatos.iloc[row,5])
     myCanvas = canvas.Canvas(f'PDFs/{nombrePDF}.pdf', pagesize=letter)
     width, height = letter  #612 792
@@ -69,11 +73,15 @@ for row in range(len(DFDatos.index)):
     myCanvas.setFont("Helvetica", 50)
     Nombre = ''.join([str(DFDatos.iloc[row,0]),' ', str(DFDatos.iloc[row,1])])
     Apellidos = ''.join([str(DFDatos.iloc[row,2]),' ', str(DFDatos.iloc[row,3])])
+    Empleado = ''.join(['Empleado: ',str(DFDatos.iloc[row,8])])
 
     myCanvas.drawCentredString(width/2,700,Nombre)
     myCanvas.drawCentredString(width/2,650,Apellidos)
+    myCanvas.drawCentredString(width/2,590,Empleado)
+    
 
     myCanvas.setFont("Helvetica", 30)
+    myCanvas.drawCentredString(width/2,450,'VIGENCIA: ')
     myCanvas.drawCentredString(width/2,350,'FECHA DE EXPEDICIÓN')
     myCanvas.drawCentredString(width/2,250,'LUGAR DE ORIGEN')
 
@@ -84,8 +92,9 @@ for row in range(len(DFDatos.index)):
     myCanvas.drawCentredString(width/2,75,Folio)
 
     Now = datetime.now()
-    Fechahoy = FechaActual(Now)
+    Fechahoy = FechaActualCompleta(Now)
 
+    myCanvas.drawCentredString(width/2,400,FechaActualCompleta(DFDatos.iloc[row,7]))
     myCanvas.drawCentredString(width/2,300,Fechahoy)
     myCanvas.drawCentredString(width/2,200,'UTEYCV')
 
