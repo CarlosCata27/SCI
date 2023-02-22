@@ -34,7 +34,7 @@ def FechaActualCompleta(date):
 
 # Load excel file to analize
 archivo = pd.ExcelFile('Credenciales.xlsx')
-df = pd.read_excel(archivo,'Hoja 1',usecols='A:I',skiprows=range(1))
+df = pd.read_excel(archivo,0,usecols='A:I',skiprows=range(1))
 
 #Create DataFrame with our parameters
 DFDatos = pd.DataFrame({
