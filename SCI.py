@@ -1,10 +1,14 @@
 import pandas as pd
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
 import qrcode
-from datetime import datetime
 import os
 import shutil
+import numpy as np
+import sys
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from datetime import datetime
+from PIL import Image, ImageDraw
+from tkinter import filedialog as fd
 
 #Conexion to Firebase Storage
 import pyrebase
@@ -32,8 +36,18 @@ def FechaActualCompleta(date):
     messsage = "{} DE {} DEL {}".format(day, month, year)
     return messsage
 
-# Load excel file to analize
-archivo = pd.ExcelFile('Credenciales.xlsx')
+def recuperarExcel():
+        nombrearch=fd.askopenfilename(initialdir = "./",title = "Seleccione archivo",filetypes = (("Libro de Excel","*.xlsx"),("Libro de Excel 97 a Excel 2003","*.xls"),("Todos los archivos","*.*")))
+        if nombrearch!='':
+            if(nombrearch.endswith('.xlsx') or nombrearch.endswith('.xls')):
+                sys.exit(1)
+
+# Load excel file to analize, you can select it
+#archivo = pd.ExcelFile('Credenciales.xlsx')
+archivo = fd.askopenfilename(initialdir = "./",title = "Seleccione archivo",filetypes = (("Todos los archivos","*.*"),("Libro de Excel","*.xlsx")))
+if archivo!='':
+    if(not(archivo.endswith('.xlsx') or archivo.endswith('.xls'))):
+        sys.exit(1)
 df = pd.read_excel(archivo,0,usecols='A:I',skiprows=range(1))
 
 #Create DataFrame with our parameters
@@ -68,14 +82,15 @@ DFDatos['Numero Empleado'] = DFDatos['Numero Empleado'].astype(int)
 shutil.rmtree('CodigosQR', ignore_errors=True)
 shutil.rmtree('PDFs', ignore_errors=True)
 shutil.rmtree('Credenciales', ignore_errors=True)
+shutil.rmtree('Recortes', ignore_errors=True)
 os.mkdir('PDFs')
 os.mkdir('Credenciales')
 os.mkdir('CodigosQR')
+os.mkdir('Recortes')
 
 #Inicializate how to create each pdf and ID
 #for row in range(len(DFDatos.index)):
 for row in range(1):
-    print(row)
     #Get name foreach file
     nombrePDF = str(DFDatos.iloc[row,5])
     #Create PDF file
@@ -138,13 +153,34 @@ for row in range(1):
     url = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv.appspot.com/o/1.png?alt=media&token=45f62ed5-23d7-47f2-9de5-67aab19e9d1c'
     Base = myCanvas.drawImage(url,0,0,height=2214,width=3322,mask='auto')
 
+    #Image selection from Fotos ID
+    if(os.path.exists(f'Fotos/{nombrePDF}.jpg')):
+        img = Image.open(f'./Fotos/{nombrePDF}.jpg').convert("RGB")
+        cut_img = img.crop((250,450,950,1150))
+        npImage=np.array(cut_img)
+        h,w=cut_img.size
+        alpha = Image.new('L', cut_img.size,0)
+        draw = ImageDraw.Draw(alpha)
+        draw.pieslice([0,0,h,w],0,360,fill=255)
+        npAlpha=np.array(alpha)
+        npImage=np.dstack((npImage,npAlpha))
+        Image.fromarray(npImage).save(f'Recortes/{nombrePDF}.png')
+    else:
+        pass
+    
+    #If image doesn't exist, dont try to paste in ID pdf file
+    if(os.path.exists(f'Recortes/{nombrePDF}.png')):
+        pathCrop = f'Recortes/{nombrePDF}.png'
+        Base = myCanvas.drawImage(pathCrop,200,370,height=1055,width=1055,mask='auto')
+    else:
+        pass
     #Phrases with Helveltica-Bold font
     myCanvas.setFont("Helvetica-Bold", 200)
     myCanvas.drawString(1300,1100,Nombre)
     myCanvas.drawString(1300,850,Apellidos)
     
     myCanvas.setFont("Helvetica-Bold", 150)
-    myCanvas.drawString(1300,550,'Profesor')
+    myCanvas.drawString(1300,550,DFDatos.iloc[row,4])
 
     #Phrases with Helveltica font
     myCanvas.setFont("Helvetica", 100)
@@ -172,5 +208,6 @@ for row in range(1):
     #Saving the ID as a PDF file
     myCanvas.save()
 
-#Delete CodigosQR dir, we dont need it
+#Delete CodigosQR and crop images dir, we dont need it
 shutil.rmtree('./CodigosQR', ignore_errors=True)
+shutil.rmtree('Recortes', ignore_errors=True)
