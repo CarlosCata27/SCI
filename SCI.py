@@ -135,16 +135,16 @@ for row in range(1):
     #Saving PDF file 
     myCanvas.save()
 
-    #Saving our PDF file in Firebase cloud
-    file = f'PDFs/{nombrePDF}.pdf'
-    cloudfilename = f'PDFs/{nombrePDF}.pdf'
+    # #Saving our PDF file in Firebase cloud
+    # file = f'PDFs/{nombrePDF}.pdf'
+    # cloudfilename = f'PDFs/{nombrePDF}.pdf'
 
-    storage.child(cloudfilename).put(file)
+    # storage.child(cloudfilename).put(file)
 
-    #Creating QR Code from url firebase
-    url_PDF = storage.child(cloudfilename).get_url(None)
-    CodigoQR = qrcode.make(url_PDF)
-    CodigoQR.save(f'CodigosQR/{nombrePDF}.png')
+    # #Creating QR Code from url firebase
+    # url_PDF = storage.child(cloudfilename).get_url(None)
+    # CodigoQR = qrcode.make(url_PDF)
+    # CodigoQR.save(f'CodigosQR/{nombrePDF}.png')
 
     # PDF file with ID
 
