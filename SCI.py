@@ -9,9 +9,22 @@ from reportlab.lib.pagesizes import letter
 from datetime import datetime
 from PIL import Image, ImageDraw
 from tkinter import filedialog as fd
+from tkinter import*
 
 #Conexion to Firebase Storage
 import pyrebase
+
+#Interface tkinter
+root = Tk()
+
+texto = Label(root,text="SCI")
+texto.pack()
+
+root.title("Sistema de credenciales")
+root.geometry("500x500")
+root.iconbitmap("SCI.ico")
+
+root.mainloop()
 
 firebaseConfig = {
     "apiKey": "AIzaSyA_QQZNU0vBCJhhmedvg-X1xDnBi2w44BA",
@@ -45,9 +58,13 @@ def recuperarExcel():
 # Load excel file to analize, you can select it
 #archivo = pd.ExcelFile('Credenciales.xlsx')
 archivo = fd.askopenfilename(initialdir = "./",title = "Seleccione archivo",filetypes = (("Todos los archivos","*.*"),("Libro de Excel","*.xlsx")))
+print("Opening...")
 if archivo!='':
     if(not(archivo.endswith('.xlsx') or archivo.endswith('.xls'))):
+        print("opened")
         sys.exit(1)
+    else:
+        print("No opened")
 df = pd.read_excel(archivo,0,usecols='A:I',skiprows=range(1))
 
 #Create DataFrame with our parameters
@@ -135,16 +152,16 @@ for row in range(1):
     #Saving PDF file 
     myCanvas.save()
 
-    # #Saving our PDF file in Firebase cloud
-    # file = f'PDFs/{nombrePDF}.pdf'
-    # cloudfilename = f'PDFs/{nombrePDF}.pdf'
+    #Saving our PDF file in Firebase cloud
+    file = f'PDFs/{nombrePDF}.pdf'
+    cloudfilename = f'PDFs/{nombrePDF}.pdf'
 
-    # storage.child(cloudfilename).put(file)
+    storage.child(cloudfilename).put(file)
 
-    # #Creating QR Code from url firebase
-    # url_PDF = storage.child(cloudfilename).get_url(None)
-    # CodigoQR = qrcode.make(url_PDF)
-    # CodigoQR.save(f'CodigosQR/{nombrePDF}.png')
+    #Creating QR Code from url firebase
+    url_PDF = storage.child(cloudfilename).get_url(None)
+    CodigoQR = qrcode.make(url_PDF)
+    CodigoQR.save(f'CodigosQR/{nombrePDF}.png')
 
     # PDF file with ID
 
