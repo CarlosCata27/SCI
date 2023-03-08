@@ -17,14 +17,93 @@ import pyrebase
 #Interface tkinter
 root = Tk()
 
-texto = Label(root,text="SCI")
-texto.pack()
-
 root.title("Sistema de credenciales")
-root.geometry("500x500")
+root.geometry("720x720")
 root.iconbitmap("SCI.ico")
+root.config(bg="#900C3F",cursor="arrow") #color y tipo de cursor
 
+#DATAFRAME
+Nombre = StringVar()
+nombre = StringVar()
+Nombre2 = StringVar()
+Apellido = StringVar()
+Apellido2 = StringVar()
+Sede = StringVar()
+Folio = StringVar()
+Registro = StringVar()
+Vigencia = StringVar()
+Empleado = StringVar()
+#TITLE
+texto0 = Label(root,text="Sistema de credenciales para la UTEyCV", bd=4,font="arial 16",bg="#900C3F",fg="#fff")
+texto0.place(x=20,y=50)
+#FORM
+texto1 = Label(root,text="Nombre:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto1.place(x=20,y=150)
+input1 = Entry(root,textvariable=Nombre,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input1.place(x=150,y=150)
+texto2 = Label(root,text="Nombre 2:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto2.place(x=20,y=200)
+input2 = Entry(root,textvariable=Nombre2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input2.place(x=150,y=200)
+texto3 = Label(root,text="Apellido:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto3.place(x=20,y=250)
+input3 = Entry(root,textvariable=Apellido,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input3.place(x=150,y=250)
+texto4 = Label(root,text="Apellido 2:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto4.place(x=20,y=300)
+input4 = Entry(root,textvariable=Apellido2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input4.place(x=150,y=300)
+texto5 = Label(root,text="Sede:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto5.place(x=20,y=350)
+input5 = Entry(root,textvariable=Sede,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input5.place(x=150,y=350)
+texto6 = Label(root,text="Folio:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto6.place(x=20,y=400)
+input6 = Entry(root,textvariable=Folio,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input6.place(x=150,y=400)
+texto7 = Label(root,text="Registro:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto7.place(x=20,y=450)
+input7 = Entry(root,textvariable=Registro,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input7.place(x=150,y=450)
+texto8 = Label(root,text="Vigencia:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto8.place(x=20,y=500)
+input8 = Entry(root,textvariable=Vigencia,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input8.place(x=150,y=500)
+texto9 = Label(root,text="Empleado:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+texto9.place(x=20,y=550)
+input9 = Entry(root,textvariable=Empleado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+input9.place(x=150,y=550)
+#SAVED FUNCTION
+def save():
+    datos = [
+        Nombre.get(),
+        Nombre2.get(),
+        Apellido.get(),
+        Apellido2.get(),
+        Sede.get(),
+        Folio.get(),
+        Registro.get(),
+        Vigencia.get(),
+        Empleado.get()
+    ]
+    print(datos)
+    DFDatosRaw = pd.DataFrame(datos)
+    print(DFDatosRaw)
+    DFDatosRaw2 = DFDatosRaw.transpose()
+    print(DFDatosRaw2)
+
+    saved = Label(root,text="Registro guardado!",bg="yellow")
+    saved.pack()
+#CLEAR INPUTS FUNCTION
+# def clear():
+#     input1.delete("1.0","end")
+
+buttonName = Button(root,text="Guardar Datos",bd=3,command = save,bg="#94FF40",font="arial 12",cursor="plus")
+buttonName.place(x=20,y=600)
+
+#Cierre de la ventana 
 root.mainloop()
+
 
 firebaseConfig = {
     "apiKey": "AIzaSyA_QQZNU0vBCJhhmedvg-X1xDnBi2w44BA",
@@ -65,6 +144,9 @@ if archivo!='':
         sys.exit(1)
     else:
         print("No opened")
+
+archivo.getCells().insertRows(2,1)
+
 df = pd.read_excel(archivo,0,usecols='A:I',skiprows=range(1))
 
 #Create DataFrame with our parameters
