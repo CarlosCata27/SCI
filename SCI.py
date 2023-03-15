@@ -4,6 +4,9 @@ import os
 import shutil
 import numpy as np
 import sys
+
+
+
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from datetime import datetime
@@ -11,14 +14,14 @@ from PIL import Image, ImageDraw
 from tkinter import filedialog as fd
 from tkinter import*
 from tkcalendar import DateEntry
-
 #Conexion to Firebase Storage
 import pyrebase
 
 #Define global DataFrame
-DFDatos = pd.DataFrame(columns=['Nombre','Nombre 2','Apellido Paterno','Apellido Materno','Sede','Folio','Registro Postgrado','Vigencia','Numero Empleado'])
+DFDatos = pd.DataFrame(columns=['Nombre','Nombre 2','Apellido Paterno','Apellido Materno','Sede','Folio','Registro Postgrado','Vigencia','Numero Empleado','Ruta Imagen'])
 
 print(len(DFDatos.index))
+
 
 #CLEAR INPUTS FUNCTION
 def clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inRegistro,inVigencia,inEmpleado):
@@ -31,13 +34,12 @@ def clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inRegistro,in
     inRegistro.delete("0","end")
     inVigencia.delete("0","end")
     inEmpleado.delete("0","end")
-
+    
 
 def Interface():
         
     #Interface tkinter
     root = Tk()
-
     root.title("Sistema de credenciales")
     root.geometry("720x720")
     root.iconbitmap("SCI.ico")
@@ -45,7 +47,6 @@ def Interface():
 
     #DATAFRAME
     Nombre = StringVar()
-    nombre = StringVar()
     Nombre2 = StringVar()
     Apellido = StringVar()
     Apellido2 = StringVar()
@@ -54,6 +55,7 @@ def Interface():
     Registro = StringVar()
     Vigencia = StringVar()
     Empleado = StringVar()
+    filePad = StringVar()
     #TITLE
     textTitle = Label(root,text="Sistema de credenciales para la UTEyCV", bd=4,font="arial 16",bg="#900C3F",fg="#fff")
     textTitle.place(x=20,y=50)
@@ -62,15 +64,15 @@ def Interface():
     textNombre.place(x=20,y=150)
     inNombre = Entry(root,textvariable=Nombre,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inNombre.place(x=150,y=150)
-    textNombre2 = Label(root,text="Nombre 2:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textNombre2 = Label(root,text="Segundo nombre:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textNombre2.place(x=20,y=200)
     inNombre2 = Entry(root,textvariable=Nombre2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inNombre2.place(x=150,y=200)
-    textApellido = Label(root,text="Apellido:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textApellido = Label(root,text="Apellido paterno:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textApellido.place(x=20,y=250)
     inApellido = Entry(root,textvariable=Apellido,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inApellido.place(x=150,y=250)
-    textApellido2 = Label(root,text="Apellido 2:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textApellido2 = Label(root,text="Apellido materno:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textApellido2.place(x=20,y=300)
     inApellido2 = Entry(root,textvariable=Apellido2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inApellido2.place(x=150,y=300)
@@ -94,6 +96,21 @@ def Interface():
     textEmpleado.place(x=20,y=550)
     inEmpleado = Entry(root,textvariable=Empleado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inEmpleado.place(x=150,y=550)
+
+    textImagen = Label(root,text="Imagen:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textImagen.place(x=20,y=600)
+    inImagen = Entry(root,textvariable=filePad,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inImagen.place(x=150,y=600)
+
+    # def browsefunc():
+    #     filePad = fd.askopenfilename(filetypes=(("Img files",".png .jpg .jpeg .webp"),("All files","*.*")))
+    #     #DFDatos.iloc[row,9]=filePad
+    #     print(filePad)
+    #     #ent1.insert(tk.END, filename) # add this
+
+    # b1 = Button(root,text="Seleccionar imagen",font=40,command=browsefunc)
+    # b1.place(x=150,y=600)
+
     #SAVED FUNCTION
     def save():
         datos = [
@@ -105,7 +122,8 @@ def Interface():
             Folio.get(),
             Registro.get(),
             Vigencia.get(),
-            Empleado.get()
+            Empleado.get(),
+            filePad.get()
         ]
         #Save data inside DataFrame, each iteration in the interface insert data
         DFDatos.loc[len(DFDatos.index)]=datos
@@ -115,7 +133,7 @@ def Interface():
         clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inRegistro,inVigencia,inEmpleado)
         
     buttonName = Button(root,text="Guardar Datos",bd=3,command = save,bg="#94FF40",font="arial 12",cursor="plus")
-    buttonName.place(x=20,y=600)
+    buttonName.place(x=20,y=650)
 
     #Cierre de la ventana 
     root.mainloop()
@@ -244,7 +262,7 @@ for row in range(1):
 
     #Image selection from Fotos ID
     if(os.path.exists(f'Fotos/{nombrePDF}.jpg')):
-        img = Image.open(f'./Fotos/{nombrePDF}.jpg').convert("RGB")
+        img = Image.open(DFDatos.iloc[row,9]).convert("RGB")
         cut_img = img.crop((250,450,950,1150))
         npImage=np.array(cut_img)
         h,w=cut_img.size
