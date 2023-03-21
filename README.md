@@ -5,7 +5,8 @@ Install libraries
  - pandas
  - reportlab
  - qrcode
- - pyrebase
+ - pyrebase4
+ - pillow
 
 If you want an executable file, install the following librarie
  - pyinstaller

@@ -5,39 +5,48 @@ import shutil
 import numpy as np
 import sys
 
-
-
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from datetime import datetime
 from PIL import Image, ImageDraw
 from tkinter import filedialog as fd
-from tkinter import*
+from tkinter import *
 from tkcalendar import DateEntry
+from PIL import Image
+
 #Conexion to Firebase Storage
-import pyrebase
+import pyrebase as fb
+
+firebaseConfig = {
+    "apiKey": "AIzaSyA_QQZNU0vBCJhhmedvg-X1xDnBi2w44BA",
+    "authDomain": "credenciales-uteycv.firebaseapp.com",
+    "projectId": "credenciales-uteycv",
+    "storageBucket": "credenciales-uteycv.appspot.com",
+    "messagingSenderId": "722175152275",
+    "appId": "1:722175152275:web:8ac288aa49373e7259bd66",
+    "measurementId": "G-Q6BCTG1MEB"}
+
+firebase = fb.initialize_app(firebaseConfig)
+
+#Config storage from firebase
+storage = firebase.storage()
 
 #Define global DataFrame
 DFDatos = pd.DataFrame(columns=['Nombre','Nombre 2','Apellido Paterno','Apellido Materno','Sede','Folio','Registro Postgrado','Vigencia','Numero Empleado','Ruta Imagen'])
 
 print(len(DFDatos.index))
 
-
 #CLEAR INPUTS FUNCTION
-def clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inRegistro,inVigencia,inEmpleado):
+def clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado):
     inNombre.delete("0","end")
     inNombre2.delete("0","end")
     inApellido.delete("0","end")
     inApellido2.delete("0","end")
-    inSede.delete("0","end")  
+    inSede.delete("0","end")
     inFolio.delete("0","end")
-    inRegistro.delete("0","end")
-    inVigencia.delete("0","end")
     inEmpleado.delete("0","end")
-    
 
 def Interface():
-        
     #Interface tkinter
     root = Tk()
     root.title("Sistema de credenciales")
@@ -55,7 +64,7 @@ def Interface():
     Registro = StringVar()
     Vigencia = StringVar()
     Empleado = StringVar()
-    filePad = StringVar()
+
     #TITLE
     textTitle = Label(root,text="Sistema de credenciales para la UTEyCV", bd=4,font="arial 16",bg="#900C3F",fg="#fff")
     textTitle.place(x=20,y=50)
@@ -84,32 +93,52 @@ def Interface():
     textFolio.place(x=20,y=400)
     inFolio = Entry(root,textvariable=Folio,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inFolio.place(x=150,y=400)
+
+    def selectDate(event):
+        fecha= date_entryRegistro.get()
+
+    #Label de Fecha de Registro
     textRegistro = Label(root,text="Registro:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textRegistro.place(x=20,y=450)
-    inRegistro = Entry(root,textvariable=Registro,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
-    inRegistro.place(x=150,y=450)
+
+    #Se crea el DateEntry
+    date_entryRegistro = DateEntry(root, textvariable=Registro, date_pattern='dd/mm/yyyy', width = 12, background = 'blue', foreground = 'white', borderwidth = 2)
+    date_entryRegistro.place(x = 150, y=450)
+
+    #Llama a la funcion del evento
+    date_entryRegistro.bind("DateEntrySelected", selectDate)
+
     textVigencia = Label(root,text="Vigencia:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textVigencia.place(x=20,y=500)
-    inVigencia = Entry(root,textvariable=Vigencia,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
-    inVigencia.place(x=150,y=500)
+
+    def selectDateVigencia(event):
+        fecha= date_entryVigencia.get()
+
+    #Se crea el DateEntry
+    date_entryVigencia = DateEntry(root, textvariable=Vigencia, date_pattern='dd/mm/yyyy', width = 12, background = 'blue', foreground = 'white', borderwidth = 2)
+    date_entryVigencia.place(x = 150, y=500)
+
+    #Llama a la funcion del evento
+    date_entryVigencia.bind("DateEntrySelected", selectDate)
+
     textEmpleado = Label(root,text="Empleado:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textEmpleado.place(x=20,y=550)
     inEmpleado = Entry(root,textvariable=Empleado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inEmpleado.place(x=150,y=550)
 
-    # textImagen = Label(root,text="Imagen:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
-    # textImagen.place(x=20,y=600)
-    # inImagen = Entry(root,textvariable=filePad,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
-    # inImagen.place(x=150,y=600)
+    textImagen = Label(root,text="Imagen:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textImagen.place(x=20,y=600)
 
     def browsefunc():
-        filePad = fd.askopenfilename(filetypes=(("Img files",".png .jpg .jpeg .webp"),("All files","*.*")))
+        global fileSelect
+        fileSelect = StringVar()
+        fileSelect = fd.askopenfilename(filetypes=(("Img files",".png .jpg .jpeg .webp"),("All files","*.*")))
         #DFDatos.iloc[row,9]=filePad
-        print(type(filePad))
+        print(fileSelect)
         #ent1.insert(tk.END, filename) # add this
 
     b1 = Button(root,text="Seleccionar imagen",font=40,command=browsefunc)
-    b1.place(x=150,y=600)
+    b1.place(x=150,y=600)\
 
     #SAVED FUNCTION
     def save():
@@ -123,36 +152,22 @@ def Interface():
             Registro.get(),
             Vigencia.get(),
             Empleado.get(),
-            filePad.get()
+            fileSelect
         ]
         #Save data inside DataFrame, each iteration in the interface insert data
         DFDatos.loc[len(DFDatos.index)]=datos
 
         saved = Label(root,text="Registro guardado!",bg="yellow")
         saved.pack()
-        clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inRegistro,inVigencia,inEmpleado)
-        
+        clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado)
+
     buttonName = Button(root,text="Guardar Datos",bd=3,command = save,bg="#94FF40",font="arial 12",cursor="plus")
     buttonName.place(x=20,y=650)
 
-    #Cierre de la ventana 
+    #Cierre de la ventana
     root.mainloop()
-    
 
 Frame = Interface()
-firebaseConfig = {
-    "apiKey": "AIzaSyA_QQZNU0vBCJhhmedvg-X1xDnBi2w44BA",
-    "authDomain": "credenciales-uteycv.firebaseapp.com",
-    "projectId": "credenciales-uteycv",
-    "storageBucket": "credenciales-uteycv.appspot.com",
-    "messagingSenderId": "722175152275",
-    "appId": "1:722175152275:web:8ac288aa49373e7259bd66",
-    "measurementId": "G-Q6BCTG1MEB"}
-
-firebase = pyrebase.initialize_app(firebaseConfig)
-
-#Config storage from firebase
-storage = firebase.storage()
 
 #Get date in a friendly format
 def FechaActualCompleta(date):
@@ -203,7 +218,7 @@ for row in range(1):
     #Create PDF file
     myCanvas = canvas.Canvas(f'./PDFs/{nombrePDF}.pdf', pagesize=letter)
     width, height = letter  #612 792
-    
+
     #Get UPIITA's logo online
     Upiita = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv.appspot.com/o/LogoUPIITA.png?alt=media&token=36f618f6-45e0-4f7f-a26b-355759536a3a'
 
@@ -239,7 +254,7 @@ for row in range(1):
     myCanvas.drawCentredString(width/2,300,Fechahoy)
     myCanvas.drawCentredString(width/2,200,'UTEyCV')
 
-    #Saving PDF file 
+    #Saving PDF file
     myCanvas.save()
 
     #Saving our PDF file in Firebase cloud
@@ -263,7 +278,22 @@ for row in range(1):
     #Image selection from Fotos ID
     if(os.path.exists(DFDatos.iloc[row,9])):
         img = Image.open(DFDatos.iloc[row,9]).convert("RGB")
-        cut_img = img.crop((250,450,950,1150))
+        img.show()
+
+        #Calcula las dimensiones de la imagen
+        width, height = img.size
+
+        #Se centra en el centro de la imagen
+        square_size = min(width,height)
+
+        # Calcula las coordenadas del cuadrado de recorte
+        left = (width - square_size) / 2
+        top = (height - square_size) / 2
+        right = (width + square_size) / 2
+        bottom = (height + square_size) / 2
+
+        cut_img = img.crop((left,top,right,bottom))
+        cut_img.show()
         npImage=np.array(cut_img)
         h,w=cut_img.size
         alpha = Image.new('L', cut_img.size,0)
@@ -274,7 +304,7 @@ for row in range(1):
         Image.fromarray(npImage).save(f'Recortes/{nombrePDF}.png')
     else:
         pass
-    
+
     #If image doesn't exist, dont try to paste in ID pdf file
     if(os.path.exists(f'Recortes/{nombrePDF}.png')):
         pathCrop = f'Recortes/{nombrePDF}.png'
@@ -285,14 +315,13 @@ for row in range(1):
     myCanvas.setFont("Helvetica-Bold", 200)
     myCanvas.drawString(1300,1100,Nombre)
     myCanvas.drawString(1300,850,Apellidos)
-    
+
     myCanvas.setFont("Helvetica-Bold", 150)
     myCanvas.drawString(1300,550,DFDatos.iloc[row,4])
 
     #Phrases with Helveltica font
     myCanvas.setFont("Helvetica", 100)
     myCanvas.drawString(1300,400,Empleado)
-    
     #Date in format m/Y
     temp = DFDatos.iloc[row,7].strftime('%m/%Y')
     myCanvas.drawString(2400,125,'Vigencia: '+str(temp))
@@ -311,7 +340,6 @@ for row in range(1):
     myCanvas.setFont("Helvetica", 60)
 
     myCanvas.drawCentredString(825,500,f'{Nombre} {Apellidos}')
-    
     #Saving the ID as a PDF file
     myCanvas.save()
 
