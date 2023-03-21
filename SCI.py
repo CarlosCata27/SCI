@@ -97,19 +97,19 @@ def Interface():
     inEmpleado = Entry(root,textvariable=Empleado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inEmpleado.place(x=150,y=550)
 
-    textImagen = Label(root,text="Imagen:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
-    textImagen.place(x=20,y=600)
-    inImagen = Entry(root,textvariable=filePad,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
-    inImagen.place(x=150,y=600)
+    # textImagen = Label(root,text="Imagen:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    # textImagen.place(x=20,y=600)
+    # inImagen = Entry(root,textvariable=filePad,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    # inImagen.place(x=150,y=600)
 
-    # def browsefunc():
-    #     filePad = fd.askopenfilename(filetypes=(("Img files",".png .jpg .jpeg .webp"),("All files","*.*")))
-    #     #DFDatos.iloc[row,9]=filePad
-    #     print(filePad)
-    #     #ent1.insert(tk.END, filename) # add this
+    def browsefunc():
+        filePad = fd.askopenfilename(filetypes=(("Img files",".png .jpg .jpeg .webp"),("All files","*.*")))
+        #DFDatos.iloc[row,9]=filePad
+        print(type(filePad))
+        #ent1.insert(tk.END, filename) # add this
 
-    # b1 = Button(root,text="Seleccionar imagen",font=40,command=browsefunc)
-    # b1.place(x=150,y=600)
+    b1 = Button(root,text="Seleccionar imagen",font=40,command=browsefunc)
+    b1.place(x=150,y=600)
 
     #SAVED FUNCTION
     def save():
@@ -261,7 +261,7 @@ for row in range(1):
     Base = myCanvas.drawImage(url,0,0,height=2214,width=3322,mask='auto')
 
     #Image selection from Fotos ID
-    if(os.path.exists(f'Fotos/{nombrePDF}.jpg')):
+    if(os.path.exists(DFDatos.iloc[row,9])):
         img = Image.open(DFDatos.iloc[row,9]).convert("RGB")
         cut_img = img.crop((250,450,950,1150))
         npImage=np.array(cut_img)
