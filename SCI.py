@@ -5,31 +5,20 @@ import shutil
 import numpy as np
 import sys
 
+from tkinter import *
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from datetime import datetime
 from PIL import Image, ImageDraw
 from tkinter import filedialog as fd
-from tkinter import *
+from tkinter import ttk
 from tkcalendar import DateEntry
 from PIL import Image
 
 #Conexion to Firebase Storage
-import pyrebase as fb
-
-firebaseConfig = {
-    "apiKey": "AIzaSyA_QQZNU0vBCJhhmedvg-X1xDnBi2w44BA",
-    "authDomain": "credenciales-uteycv.firebaseapp.com",
-    "projectId": "credenciales-uteycv",
-    "storageBucket": "credenciales-uteycv.appspot.com",
-    "messagingSenderId": "722175152275",
-    "appId": "1:722175152275:web:8ac288aa49373e7259bd66",
-    "measurementId": "G-Q6BCTG1MEB"}
-
-firebase = fb.initialize_app(firebaseConfig)
-
+from Pyrebase.firebaseStorage import FirebaseStorage
 #Config storage from firebase
-storage = firebase.storage()
+storage = FirebaseStorage()
 
 #Define global DataFrame
 DFDatos = pd.DataFrame(columns=['Nombre','Nombre 2','Apellido Paterno','Apellido Materno','Puesto','Area','Folio','Registro Postgrado','Vigencia','Numero Empleado','Ruta Imagen','Encargado'])
@@ -51,7 +40,7 @@ def Interface():
     #Interface tkinter
     root = Tk()
     root.title("Sistema de credenciales")
-    root.geometry("780x780")
+    root.geometry("1280x720")
     root.iconbitmap("SCI.ico")
     root.config(bg="#900C3F",cursor="arrow") #color y tipo de cursor
 
@@ -60,7 +49,8 @@ def Interface():
     Nombre2 = StringVar()
     Apellido = StringVar()
     Apellido2 = StringVar()
-    Sede = StringVar()
+    Puesto = StringVar()
+    Area = StringVar()
     Folio = StringVar()
     Registro = StringVar()
     Vigencia = StringVar()
@@ -70,27 +60,73 @@ def Interface():
     #TITLE
     textTitle = Label(root,text="Sistema de credenciales para la UTEyCV", bd=4,font="arial 16",bg="#900C3F",fg="#fff")
     textTitle.place(x=20,y=50)
+
     #FORM
     textNombre = Label(root,text="Nombre:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textNombre.place(x=20,y=150)
     inNombre = Entry(root,textvariable=Nombre,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inNombre.place(x=150,y=150)
+
     textNombre2 = Label(root,text="Segundo nombre:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textNombre2.place(x=20,y=200)
     inNombre2 = Entry(root,textvariable=Nombre2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inNombre2.place(x=150,y=200)
+
     textApellido = Label(root,text="Apellido paterno:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textApellido.place(x=20,y=250)
     inApellido = Entry(root,textvariable=Apellido,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inApellido.place(x=150,y=250)
+
     textApellido2 = Label(root,text="Apellido materno:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textApellido2.place(x=20,y=300)
     inApellido2 = Entry(root,textvariable=Apellido2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inApellido2.place(x=150,y=300)
-    textSede = Label(root,text="Sede:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
-    textSede.place(x=20,y=350)
-    inSede = Entry(root,textvariable=Sede,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
-    inSede.place(x=150,y=350)
+
+    def seleccion_dropdown(*args):
+        opcionSelec = comboPuesto.get()
+        subOpciones = dropdownElements[opcionSelec]
+
+        #Actualizar las opciones del segundo ComboBox
+        comboArea["values"] = subOpciones
+        comboArea.set(subOpciones[0])
+
+    dropdownElements = {
+        'Director': ['Director de la Unidad Academica'],
+        'Sub-director':['Subdirector Academico',
+                        'Subdirector Administrativo',
+                        'Subdirector De Servicios Educativos E Integracion Social'],
+        'Jefe de Departamento':['Jefe de la Unidad de Informatica',
+                                'JEfe de la seccion de estudios de posgrado e investigacion',
+                                'Jefe del Departamento de Investigacion',
+                                'Jefe del Departamente de Posgrado',
+                                'Jefe del Laboratorio Institucional de la Red de Robotica y Mecatronica',
+                                'Jefe del Departamento de Ciencias Basicas',
+                                'Jefe del Departamento de Tecnologias Avanzadas',
+                                'Jefe del Departamento de Formacion Integral e Institucional',
+                                'Jefe del Departamento de Ingenieria',
+                                'Jefe de la Unidad de Tecnologia Educativa y Campus Virtual',
+                                'Jefe del Departamento de Evaluacion y Seguimiento Academico',
+                                'Jefe del Departamento de Capital Humano',
+                                'Jefe del Departamento de Recursos Financieros',
+                                'Jefe del Departamento de Recursos Materiales y Servicios',
+                                'Jefe del Departamento de Gestion Escolar',
+                                'Jefe del Departamento de Servicios Estudiantiles',
+                                'Jefa del Departamento de Extensión Y Apoyos Educativos']
+    }
+
+    Puesto.set(list(dropdownElements.keys())[0])
+    Puesto.trace_add('write', seleccion_dropdown)
+
+    #Creamos el Combobox
+    comboPuesto = ttk.Combobox(root, textvariable=Puesto ,values=list(dropdownElements.keys()))
+    comboPuesto.current(0)
+    comboPuesto.pack()
+
+    opcionesArea = dropdownElements[Puesto.get()]
+    comboArea = ttk.Combobox(root, textvariable=Area, values=opcionesArea)
+    comboArea.current(0)
+    comboArea.pack()
+
     textFolio = Label(root,text="Folio:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textFolio.place(x=20,y=400)
     inFolio = Entry(root,textvariable=Folio,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
