@@ -33,12 +33,12 @@ firebase = fb.initialize_app(firebaseConfig)
 storage = firebase.storage()
 
 #Define global DataFrame
-DFDatos = pd.DataFrame(columns=['Nombre','Nombre 2','Apellido Paterno','Apellido Materno','Sede','Folio','Registro Postgrado','Vigencia','Numero Empleado','Ruta Imagen'])
+DFDatos = pd.DataFrame(columns=['Nombre','Nombre 2','Apellido Paterno','Apellido Materno','Puesto','Area','Folio','Registro Postgrado','Vigencia','Numero Empleado','Ruta Imagen','Encargado'])
 
 print(len(DFDatos.index))
 
 #CLEAR INPUTS FUNCTION
-def clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado):
+def clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado,inEncargado):
     inNombre.delete("0","end")
     inNombre2.delete("0","end")
     inApellido.delete("0","end")
@@ -46,12 +46,13 @@ def clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado):
     inSede.delete("0","end")
     inFolio.delete("0","end")
     inEmpleado.delete("0","end")
+    inEncargado.delete("0","end")
 
 def Interface():
     #Interface tkinter
     root = Tk()
     root.title("Sistema de credenciales")
-    root.geometry("720x720")
+    root.geometry("780x780")
     root.iconbitmap("SCI.ico")
     root.config(bg="#900C3F",cursor="arrow") #color y tipo de cursor
 
@@ -66,6 +67,7 @@ def Interface():
     Registro = StringVar()
     Vigencia = StringVar()
     Empleado = StringVar()
+    Encargado = StringVar()
 
     #TITLE
     textTitle = Label(root,text="Sistema de credenciales para la UTEyCV", bd=4,font="arial 16",bg="#900C3F",fg="#fff")
@@ -179,8 +181,13 @@ def Interface():
     inEmpleado = Entry(root,textvariable=Empleado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inEmpleado.place(x=150,y=550)
 
+    textEncargado = Label(root,text="Encargado:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textEncargado.place(x=20,y=600)
+    inEncargado = Entry(root,textvariable=Encargado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inEncargado.place(x=150,y=600)
+
     textImagen = Label(root,text="Imagen:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
-    textImagen.place(x=20,y=600)
+    textImagen.place(x=20,y=650)
 
     def browsefunc():
         global fileSelect
@@ -191,7 +198,7 @@ def Interface():
         #ent1.insert(tk.END, filename) # add this
 
     b1 = Button(root,text="Seleccionar imagen",font=40,command=browsefunc)
-    b1.place(x=150,y=600)\
+    b1.place(x=150,y=700)\
 
     #SAVED FUNCTION
     def save():
@@ -200,11 +207,13 @@ def Interface():
             Nombre2.get(),
             Apellido.get(),
             Apellido2.get(),
-            Sede.get(),
+            Puesto.get(),
+            Area.get(),
             Folio.get(),
             Registro.get(),
             Vigencia.get(),
             Empleado.get(),
+            Encargado.get(),
             fileSelect
         ]
         #Save data inside DataFrame, each iteration in the interface insert data
@@ -212,10 +221,10 @@ def Interface():
 
         saved = Label(root,text="Registro guardado!",bg="yellow")
         saved.pack()
-        clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado)
+        clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado,inEncargado)
 
     buttonName = Button(root,text="Guardar Datos",bd=3,command = save,bg="#94FF40",font="arial 12",cursor="plus")
-    buttonName.place(x=20,y=650)
+    buttonName.place(x=20,y=750)
 
     #Cierre de la ventana
     root.mainloop()
