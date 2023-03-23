@@ -69,11 +69,7 @@ with pd.ExcelWriter(fileName, mode='w', engine='openpyxl') as writer:
 #DFDatos.to_excel('CredencialesRealizadas.xlsx')
 #Creation and validation directorys to save final files
 shutil.rmtree('CodigosQR', ignore_errors=True)
-shutil.rmtree('PDFs', ignore_errors=True)
-shutil.rmtree('Credenciales', ignore_errors=True)
 shutil.rmtree('Recortes', ignore_errors=True)
-os.mkdir('PDFs')
-os.mkdir('Credenciales')
 os.mkdir('CodigosQR')
 os.mkdir('Recortes')
 
