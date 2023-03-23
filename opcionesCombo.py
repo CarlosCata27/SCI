@@ -4,7 +4,7 @@ dropdownElements = {
                         'Subdirector Administrativo',
                         'Subdirector De Servicios Educativos E Integracion Social'],
         'Jefe de Departamento':['Jefe de la Unidad de Informatica',
-                                'JEfe de la seccion de estudios de posgrado e investigacion',
+                                'Jefe de la seccion de estudios de posgrado e investigacion',
                                 'Jefe del Departamento de Investigacion',
                                 'Jefe del Departamente de Posgrado',
                                 'Jefe del Laboratorio Institucional de la Red de Robotica y Mecatronica',

@@ -58,7 +58,7 @@ class FormFrame(ctk.CTkFrame):
                 subOpciones = dropdownElements[opcionSelec]
 
                 #Actualizar las opciones del segundo ComboBox
-                comboArea["values"] = subOpciones
+                comboArea.configure(values=subOpciones)
                 comboArea.set(subOpciones[0])
                 print("aqui 1")
             else:
