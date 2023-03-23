@@ -5,14 +5,21 @@ import shutil
 import numpy as np
 import sys
 
+#importar UI
 from tkinter import *
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from datetime import datetime
-from PIL import Image, ImageDraw
 from tkinter import filedialog as fd
 from tkinter import ttk
 from tkcalendar import DateEntry
+import customtkinter as ctk
+
+#importar PDF gen
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+
+from datetime import datetime
+
+#importar Pillow
+from PIL import Image, ImageDraw
 from PIL import Image
 
 #Conexion to Firebase Storage
@@ -36,13 +43,17 @@ def clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado,in
     inEmpleado.delete("0","end")
     inEncargado.delete("0","end")
 
+ctk.set_appearance_mode("System")
+
+
 def Interface():
     #Interface tkinter
-    root = Tk()
-    root.title("Sistema de credenciales")
-    root.geometry("1280x720")
-    root.iconbitmap("SCI.ico")
-    root.config(bg="#900C3F",cursor="arrow") #color y tipo de cursor
+    app = ctk.CTk()
+    app.title("Sistema de credenciales")
+    app.geometry("1280x720")
+    app.iconbitmap("SCI.ico")
+
+    Titulos = ctk.CTkFont(family="Montserrat", size=36, weight='bold')
 
     #DATAFRAME
     Nombre = StringVar()
@@ -58,37 +69,31 @@ def Interface():
     Encargado = StringVar()
 
     #TITLE
-    textTitle = Label(root,text="Sistema de credenciales para la UTEyCV", bd=4,font="arial 16",bg="#900C3F",fg="#fff")
-    textTitle.place(x=20,y=50)
+    title = ctk.CTkLabel(master=app,
+                        text="Sistema de Credenciales para la UTEyCV",
+                        font=Titulos)
+    title.place(relx=0.5, rely=0.5)
 
     #FORM
-    textNombre = Label(root,text="Nombre:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textNombre = Label(app,text="Nombre:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textNombre.place(x=20,y=150)
-    inNombre = Entry(root,textvariable=Nombre,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inNombre = Entry(app,textvariable=Nombre,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inNombre.place(x=150,y=150)
 
-    textNombre2 = Label(root,text="Segundo nombre:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textNombre2 = Label(app,text="Segundo nombre:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textNombre2.place(x=20,y=200)
-    inNombre2 = Entry(root,textvariable=Nombre2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inNombre2 = Entry(app,textvariable=Nombre2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inNombre2.place(x=150,y=200)
 
-    textApellido = Label(root,text="Apellido paterno:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textApellido = Label(app,text="Apellido paterno:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textApellido.place(x=20,y=250)
-    inApellido = Entry(root,textvariable=Apellido,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inApellido = Entry(app,textvariable=Apellido,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inApellido.place(x=150,y=250)
 
-    textApellido2 = Label(root,text="Apellido materno:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textApellido2 = Label(app,text="Apellido materno:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textApellido2.place(x=20,y=300)
-    inApellido2 = Entry(root,textvariable=Apellido2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inApellido2 = Entry(app,textvariable=Apellido2,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inApellido2.place(x=150,y=300)
-
-    def seleccion_dropdown(*args):
-        opcionSelec = comboPuesto.get()
-        subOpciones = dropdownElements[opcionSelec]
-
-        #Actualizar las opciones del segundo ComboBox
-        comboArea["values"] = subOpciones
-        comboArea.set(subOpciones[0])
 
     dropdownElements = {
         'Director': ['Director de la Unidad Academica'],
@@ -114,62 +119,69 @@ def Interface():
                                 'Jefa del Departamento de Extensión Y Apoyos Educativos']
     }
 
+    def seleccion_dropdown(*args):
+        opcionSelec = comboPuesto.get()
+        subOpciones = dropdownElements[opcionSelec]
+
+        #Actualizar las opciones del segundo ComboBox
+        comboArea["values"] = subOpciones
+        comboArea.set(subOpciones[0])
+
     Puesto.set(list(dropdownElements.keys())[0])
     Puesto.trace_add('write', seleccion_dropdown)
-
     #Creamos el Combobox
-    comboPuesto = ttk.Combobox(root, textvariable=Puesto ,values=list(dropdownElements.keys()))
+    comboPuesto = ttk.Combobox(app, textvariable=Puesto ,values=list(dropdownElements.keys()))
     comboPuesto.current(0)
     comboPuesto.pack()
 
     opcionesArea = dropdownElements[Puesto.get()]
-    comboArea = ttk.Combobox(root, textvariable=Area, values=opcionesArea)
+    comboArea = ttk.Combobox(app, textvariable=Area, values=opcionesArea)
     comboArea.current(0)
     comboArea.pack()
 
-    textFolio = Label(root,text="Folio:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textFolio = Label(app,text="Folio:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textFolio.place(x=20,y=400)
-    inFolio = Entry(root,textvariable=Folio,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inFolio = Entry(app,textvariable=Folio,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inFolio.place(x=150,y=400)
 
     def selectDate(event):
         fecha= date_entryRegistro.get()
 
     #Label de Fecha de Registro
-    textRegistro = Label(root,text="Registro:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textRegistro = Label(app,text="Registro:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textRegistro.place(x=20,y=450)
 
     #Se crea el DateEntry
-    date_entryRegistro = DateEntry(root, textvariable=Registro, date_pattern='dd/mm/yyyy', width = 12, background = 'blue', foreground = 'white', borderwidth = 2)
+    date_entryRegistro = DateEntry(app, textvariable=Registro, date_pattern='dd/mm/yyyy', width = 12, background = 'blue', foreground = 'white', borderwidth = 2)
     date_entryRegistro.place(x = 150, y=450)
 
     #Llama a la funcion del evento
     date_entryRegistro.bind("DateEntrySelected", selectDate)
 
-    textVigencia = Label(root,text="Vigencia:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textVigencia = Label(app,text="Vigencia:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textVigencia.place(x=20,y=500)
 
     def selectDateVigencia(event):
         fecha= date_entryVigencia.get()
 
     #Se crea el DateEntry
-    date_entryVigencia = DateEntry(root, textvariable=Vigencia, date_pattern='dd/mm/yyyy', width = 12, background = 'blue', foreground = 'white', borderwidth = 2)
+    date_entryVigencia = DateEntry(app, textvariable=Vigencia, date_pattern='dd/mm/yyyy', width = 12, background = 'blue', foreground = 'white', borderwidth = 2)
     date_entryVigencia.place(x = 150, y=500)
 
     #Llama a la funcion del evento
     date_entryVigencia.bind("DateEntrySelected", selectDate)
 
-    textEmpleado = Label(root,text="Empleado:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textEmpleado = Label(app,text="Empleado:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textEmpleado.place(x=20,y=550)
-    inEmpleado = Entry(root,textvariable=Empleado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inEmpleado = Entry(app,textvariable=Empleado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inEmpleado.place(x=150,y=550)
 
-    textEncargado = Label(root,text="Encargado:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textEncargado = Label(app,text="Encargado:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textEncargado.place(x=20,y=600)
-    inEncargado = Entry(root,textvariable=Encargado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
+    inEncargado = Entry(app,textvariable=Encargado,bd=4,font="arial 12",bg="#CFCFCF",fg="#000")
     inEncargado.place(x=150,y=600)
 
-    textImagen = Label(root,text="Imagen:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
+    textImagen = Label(app,text="Imagen:", bd=4,font="arial 12",bg="#900C3F",fg="#fff")
     textImagen.place(x=20,y=650)
 
     def browsefunc():
@@ -180,7 +192,7 @@ def Interface():
         print(fileSelect)
         #ent1.insert(tk.END, filename) # add this
 
-    b1 = Button(root,text="Seleccionar imagen",font=40,command=browsefunc)
+    b1 = Button(app,text="Seleccionar imagen",font=40,command=browsefunc)
     b1.place(x=150,y=700)\
 
     #SAVED FUNCTION
@@ -202,15 +214,15 @@ def Interface():
         #Save data inside DataFrame, each iteration in the interface insert data
         DFDatos.loc[len(DFDatos.index)]=datos
 
-        saved = Label(root,text="Registro guardado!",bg="yellow")
+        saved = Label(app,text="Registro guardado!",bg="yellow")
         saved.pack()
         clear(inNombre,inNombre2,inApellido,inApellido2,inSede,inFolio,inEmpleado,inEncargado)
 
-    buttonName = Button(root,text="Guardar Datos",bd=3,command = save,bg="#94FF40",font="arial 12",cursor="plus")
+    buttonName = Button(app,text="Guardar Datos",bd=3,command = save,bg="#94FF40",font="arial 12",cursor="plus")
     buttonName.place(x=20,y=750)
 
     #Cierre de la ventana
-    root.mainloop()
+    app.mainloop()
 
 Frame = Interface()
 
@@ -236,7 +248,7 @@ DFDatos['Nombre 2'] = DFDatos['Nombre 2'].replace(pd.NA,'')
 DFDatos['Nombre 2'] = DFDatos['Nombre 2'].map(lambda x: x.lstrip(' '))
 DFDatos['Apellido Paterno'] = DFDatos['Apellido Paterno'].map(lambda x: x.rstrip(' '))
 DFDatos['Apellido Materno'] = DFDatos['Apellido Materno'].map(lambda x: x.lstrip(' '))
- """
+"""
 DFDatos['Folio'] = DFDatos['Folio'].map(lambda x: x.lstrip('FOLIO:'))
 
 DFDatos['Numero Empleado'] = DFDatos['Numero Empleado'].astype("int64")

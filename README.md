@@ -7,6 +7,8 @@ Install libraries
  - qrcode
  - pyrebase4
  - pillow
+ - customtkinter
+ -
 
 If you want an executable file, install the following librarie
  - pyinstaller
