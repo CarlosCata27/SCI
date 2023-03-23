@@ -4,6 +4,7 @@ import os
 import shutil
 import numpy as np
 import sys
+import PyPDF2
 
 import gui
 
@@ -32,8 +33,8 @@ DFDatos = pd.DataFrame(columns=['Folio',
                                 'Registro',
                                 'Vigencia',
                                 'Numero Empleado',
-                                'Ruta Imagen',
-                                'Encargado'])
+                                'Encargado',
+                                'Ruta Imagen'])
 
 
 def receive_data(app_instance, data):
@@ -215,3 +216,32 @@ for row in range(1):
 shutil.rmtree('./CodigosQR', ignore_errors=True)
 shutil.rmtree('Recortes', ignore_errors=True)
 
+input_folder = "./Credenciales"
+filename = nombreCred+".pdf"
+
+input_file = os.path.join(input_folder,filename)
+output_file = os.path.join(input_folder,filename)
+
+
+# Abre el archivo PDF original
+with open(input_file, "rb") as file:
+    # Crea un objeto PDFReader
+    reader = PyPDF2.PdfReader(file)
+
+    # Crea un objeto PDFWriter para escribir el PDF modificado
+    writer = PyPDF2.PdfWriter()
+
+    # Itera sobre las páginas del PDF
+    for page_num in range(len(reader.pages)):
+        page = reader.pages[page_num]
+
+        # Gira la página 180 grados en sentido horario
+        if page_num == 1:  # Cambia el índice de la página aquí
+            page.rotate(180)
+
+        # Agrega la página al objeto PDFWriter
+        writer.add_page(page)
+
+    # Guarda el PDF modificado
+    with open(output_file, "wb") as output:
+        writer.write(output)

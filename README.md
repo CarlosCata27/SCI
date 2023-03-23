@@ -8,7 +8,7 @@ Install libraries
  - pyrebase4
  - pillow
  - customtkinter
- -
+ - pyPDF2
 
 If you want an executable file, install the following librarie
  - pyinstaller
