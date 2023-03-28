@@ -5,13 +5,14 @@ import shutil
 import numpy as np
 import sys
 import PyPDF2
+import openpyxl
 
 import gui
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
-from datetime import datetime
+from datetime import datetime,date
 
 #importar Pillow
 from PIL import Image, ImageDraw
@@ -22,8 +23,18 @@ from Pyrebase.firebaseStorage import FirebaseStorage
 #Config storage from firebase
 storage = FirebaseStorage()
 
+#Nombre del archivo de base de datos?
 fileName = 'CredencialesRealizadas.xlsx'
-DFExistentes = pd.read_excel(fileName)
+archivoNuevo = False
+
+if(os.path.exists(fileName)):
+    archivoNuevo = False
+    DFExistentes = pd.read_excel(fileName)
+else:
+    archivoNuevo = True
+    newExcel = openpyxl.Workbook()
+    newExcel.save(fileName)
+
 
 DFDatos = pd.DataFrame(columns=['Folio',
                                 'Nombre','Nombre 2',
@@ -55,16 +66,56 @@ def FechaActualCompleta(date):
 
 DFDatos['Nombre 2'] = DFDatos['Nombre 2'].replace(pd.NA,'')
 
-DFDatos['Folio'] = DFDatos['Folio'].map(lambda x: x.lstrip('FOLIO:'))
+#DFDatos['Folio'] = DFDatos['Folio'].map(lambda x: x.lstrip('FOLIO:'))
 
-DFDatos['Numero Empleado'] = DFDatos['Numero Empleado'].astype("int64")
+#DFDatos['Numero Empleado'] = DFDatos['Numero Empleado'].astype("int64")
 
 DFDatos['Vigencia'] = pd.to_datetime(DFDatos['Vigencia'], format="%d/%m/%Y")
 
-DFExistentes = DFExistentes.append(DFDatos)
+def consecutivoFolio(Dataframe):
+    #SCI, año YY, ##
+    Anio = str(datetime.now().year)
+    Anio = Anio[-2:]
+    padding=4
 
-with pd.ExcelWriter(fileName, mode='w', engine='openpyxl') as writer:
-    DFExistentes.to_excel(writer, index=False)
+    DFReal = Dataframe[Dataframe['Folio'] != 0]
+    DFFolios = Dataframe[Dataframe['Folio'] == 0]
+    
+    if(not(DFReal.empty)):
+        registrosExistentes = len(DFReal.index)
+        numero = int(DFReal.iloc[registrosExistentes-1,0][-4:])+1
+    else:
+        numero = 1
+
+    print(DFFolios)
+    for i in range(len(DFFolios.index)):
+        Consecutivo = str(numero).zfill(padding)
+        print(numero)
+        Folio = "SCI"+Anio+Consecutivo
+        print(Folio)
+        DFFolios.iloc[i,0] = Folio
+
+        numero+=1
+        
+    DFAux = pd.concat([DFReal,DFFolios],ignore_index=True)
+    return DFAux
+
+if (archivoNuevo == True):
+    DFAux = consecutivoFolio(DFDatos)
+    Dataframe = DFAux
+else:
+    #Concatenacion de los registros hechos desde la GUI a los registros que obtuvimos del excel
+    Dataframe = pd.concat([DFExistentes,DFDatos],ignore_index=True)
+
+    Dataframe = consecutivoFolio(Dataframe)
+
+
+
+print(Dataframe)
+
+
+#with pd.ExcelWriter(fileName, mode='w', engine='openpyxl') as writer:
+Dataframe.to_excel(fileName, index=False)
 
 #DFDatos.to_excel('CredencialesRealizadas.xlsx')
 #Creation and validation directorys to save final files
@@ -72,6 +123,9 @@ shutil.rmtree('CodigosQR', ignore_errors=True)
 shutil.rmtree('Recortes', ignore_errors=True)
 os.mkdir('CodigosQR')
 os.mkdir('Recortes')
+
+registrosCreados = len(DFDatos.index)
+DFDatos = Dataframe.tail(registrosCreados)
 
 #Inicializate how to create each pdf and ID
 #for row in range(len(DFDatos.index)):
@@ -142,7 +196,7 @@ for row in range(1):
     #Image selection from Fotos ID
     if(os.path.exists(DFDatos.iloc[row,11])):
         img = Image.open(DFDatos.iloc[row,11]).convert("RGB")
-        img.show()
+        #img.show()
 
         #Calcula las dimensiones de la imagen
         width, height = img.size
@@ -157,7 +211,7 @@ for row in range(1):
         bottom = (height + square_size) / 2
 
         cut_img = img.crop((left,top,right,bottom))
-        cut_img.show()
+        #cut_img.show()
         npImage=np.array(cut_img)
         h,w=cut_img.size
         alpha = Image.new('L', cut_img.size,0)

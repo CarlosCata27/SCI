@@ -19,5 +19,8 @@ dropdownElements = {
                                 'Jefe del Departamento de Recursos Materiales y Servicios',
                                 'Jefe del Departamento de Gestion Escolar',
                                 'Jefe del Departamento de Servicios Estudiantiles',
-                                'Jefa del Departamento de Extensión Y Apoyos Educativos']
+                                'Jefa del Departamento de Extensión Y Apoyos Educativos'],
+        'Otros': ['Visita',
+                  'Congreso',
+                  '...']
 }

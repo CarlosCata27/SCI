@@ -143,13 +143,11 @@ class AppGui(ctk.CTk):
     def __init__(self, data_callback=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_callback = data_callback
-        self.geometry("1280x720")
+        self.geometry("800x600")
         self.title("Sistema de credenciales")
         self.iconbitmap("SCI.ico")
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        self.resizable(width=False, height=False)
-
 
         Titulos = ctk.CTkFont(family="Montserrat", size=32, weight='bold')
         Boton = ctk.CTkFont(family="Montserrat", size=24, weight='bold')
@@ -158,7 +156,7 @@ class AppGui(ctk.CTk):
         title.grid(row=0, column=0, padx = 20, pady = 20)
 
         self.formFrame = FormFrame(master=self)
-        self.formFrame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        formFrame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         buttonName = ctk.CTkButton(self, text="Guardar Datos", command=self.save, font=Boton, cursor="plus")
         buttonName.grid(row=2, column=0, padx=20, pady=20)
