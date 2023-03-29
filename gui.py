@@ -1,9 +1,25 @@
 import tkinter as tk
 import customtkinter as ctk
+import sys, os
 
 from tkcalendar import DateEntry
 from opcionesCombo import dropdownElements
 from tkinter import filedialog as fd
+
+class ToplevelWindow(ctk.CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.geometry("400x100")
+        self.title("Registro Exitoso")
+        self.grab_set()
+
+        Subtitulo = ctk.CTkFont(family="Montserrat", size=24, weight='normal')
+
+        self.label = ctk.CTkLabel(self, text="Registro realizado exitosamente!", font=Subtitulo)
+        self.label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+
+        #buttonName = ctk.CTkButton(self, text="Realizar un nuevo Registro", command=restart_program, font=Boton, cursor="plus")
+        #buttonName.place(relx=0.3, rely=0.3, anchor=tk.CENTER)
 
 class FormFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -150,6 +166,8 @@ class AppGui(ctk.CTk):
         self.grid_columnconfigure(0, weight=1)
         self.resizable(width=False, height=False)
 
+        self.grab_set()
+
 
         Titulos = ctk.CTkFont(family="Montserrat", size=32, weight='bold')
         Boton = ctk.CTkFont(family="Montserrat", size=24, weight='bold')
@@ -162,6 +180,9 @@ class AppGui(ctk.CTk):
 
         buttonName = ctk.CTkButton(self, text="Guardar Datos", command=self.save, font=Boton, cursor="plus")
         buttonName.grid(row=2, column=0, padx=20, pady=20)
+
+        self.toplevel_window = None
+        
 
     def save(self, event=None):
         datos = [
@@ -181,5 +202,8 @@ class AppGui(ctk.CTk):
 
         if self.data_callback:
             self.data_callback(self, datos)
-        #import main
-        #main.receive_data(self, datos)
+
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = ToplevelWindow(self)
+        else:
+            self.toplevel_window.focus()

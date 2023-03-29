@@ -1,6 +1,7 @@
 import pandas as pd
 import qrcode
 import os
+import sys
 import shutil
 import numpy as np
 import sys
@@ -146,7 +147,7 @@ for row in range(1):
     myCanvas.setFont("Helvetica", 50)
     Nombre = ''.join([str(DFDatos.iloc[row,1]),' ', str(DFDatos.iloc[row,2])])
     Apellidos = ''.join([str(DFDatos.iloc[row,3]),' ', str(DFDatos.iloc[row,4])])
-    Empleado = ''.join(['Empleado: ',str(DFDatos.iloc[row,9])])
+    Empleado = ''.join(['No Empleado o RFC: ',str(DFDatos.iloc[row,9])])
 
     myCanvas.drawCentredString(width/2,700,Nombre)
     myCanvas.drawCentredString(width/2,650,Apellidos)
@@ -295,3 +296,6 @@ with open(input_file, "rb") as file:
     # Guarda el PDF modificado
     with open(output_file, "wb") as output:
         writer.write(output)
+
+python = sys.executable
+os.execl(python, python, * sys.argv)
