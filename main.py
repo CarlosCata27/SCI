@@ -7,7 +7,6 @@ import numpy as np
 import sys
 import PyPDF2
 import openpyxl
-
 import gui
 
 from reportlab.pdfgen import canvas
@@ -110,13 +109,16 @@ else:
 
     Dataframe = consecutivoFolio(Dataframe)
 
-
-
 print(Dataframe)
-
 
 #with pd.ExcelWriter(fileName, mode='w', engine='openpyxl') as writer:
 Dataframe.to_excel(fileName, index=False)
+
+registrosCreados = len(DFDatos.index)
+DFDatos = Dataframe.tail(registrosCreados)
+
+if(DFDatos.empty):
+    sys.exit()
 
 #DFDatos.to_excel('CredencialesRealizadas.xlsx')
 #Creation and validation directorys to save final files
@@ -124,13 +126,16 @@ shutil.rmtree('CodigosQR', ignore_errors=True)
 shutil.rmtree('Recortes', ignore_errors=True)
 os.mkdir('CodigosQR')
 os.mkdir('Recortes')
+if(not(os.path.exists('PDFs'))):
+    os.mkdir('PDFs')
+if(not(os.path.exists('Credenciales'))):
+    os.mkdir('Credenciales')
 
-registrosCreados = len(DFDatos.index)
-DFDatos = Dataframe.tail(registrosCreados)
+
 
 #Inicializate how to create each pdf and ID
-#for row in range(len(DFDatos.index)):
-for row in range(1):
+for row in range(len(DFDatos.index)):
+#for row in range(1):
     #Get name foreach file
     nombrePDF = str(DFDatos.iloc[row, 3]) + str(DFDatos.iloc[row, 4]) + str(DFDatos.iloc[row, 1]) + str(DFDatos.iloc[row, 2]) + str(DFDatos.iloc[row,0])
     #Create PDF file
@@ -263,39 +268,40 @@ for row in range(1):
     #Saving the ID as a PDF file
     myCanvas.save()
 
+        
+    input_folder = "./Credenciales"
+    filename = nombreCred+".pdf"
+
+    input_file = os.path.join(input_folder,filename)
+    output_file = os.path.join(input_folder,filename)
+
+
+    # Abre el archivo PDF original
+    with open(input_file, "rb") as file:
+        # Crea un objeto PDFReader
+        reader = PyPDF2.PdfReader(file)
+
+        # Crea un objeto PDFWriter para escribir el PDF modificado
+        writer = PyPDF2.PdfWriter()
+
+        # Itera sobre las páginas del PDF
+        for page_num in range(len(reader.pages)):
+            page = reader.pages[page_num]
+
+            # Gira la página 180 grados en sentido horario
+            if page_num == 1:  # Cambia el índice de la página aquí
+                page.rotate(180)
+
+            # Agrega la página al objeto PDFWriter
+            writer.add_page(page)
+
+        # Guarda el PDF modificado
+        with open(output_file, "wb") as output:
+            writer.write(output)
+
 #Delete CodigosQR and crop images dir, we dont need it
 shutil.rmtree('./CodigosQR', ignore_errors=True)
 shutil.rmtree('Recortes', ignore_errors=True)
-
-input_folder = "./Credenciales"
-filename = nombreCred+".pdf"
-
-input_file = os.path.join(input_folder,filename)
-output_file = os.path.join(input_folder,filename)
-
-
-# Abre el archivo PDF original
-with open(input_file, "rb") as file:
-    # Crea un objeto PDFReader
-    reader = PyPDF2.PdfReader(file)
-
-    # Crea un objeto PDFWriter para escribir el PDF modificado
-    writer = PyPDF2.PdfWriter()
-
-    # Itera sobre las páginas del PDF
-    for page_num in range(len(reader.pages)):
-        page = reader.pages[page_num]
-
-        # Gira la página 180 grados en sentido horario
-        if page_num == 1:  # Cambia el índice de la página aquí
-            page.rotate(180)
-
-        # Agrega la página al objeto PDFWriter
-        writer.add_page(page)
-
-    # Guarda el PDF modificado
-    with open(output_file, "wb") as output:
-        writer.write(output)
 
 python = sys.executable
 os.execl(python, python, * sys.argv)

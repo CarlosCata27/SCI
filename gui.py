@@ -161,7 +161,11 @@ class AppGui(ctk.CTk):
         self.data_callback = data_callback
         self.geometry("1280x720")
         self.title("Sistema de credenciales")
-        self.iconbitmap("SCI.ico")
+        # Intenta establecer el icono de la aplicación
+        try:
+            self.iconbitmap("SCI.ico")
+        except tk.TclError:
+            pass  # Omitimos el icono si no es compatible
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.resizable(width=False, height=False)
