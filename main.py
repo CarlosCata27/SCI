@@ -4,22 +4,22 @@ import os
 import sys
 import shutil
 import numpy as np
-import sys
 import PyPDF2
 import openpyxl
 import gui
-
+import fitz
+import glob
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-
-from datetime import datetime,date
-
+from reportlab.lib.pagesizes import letter, mm
+from reportlab.pdfbase import pdfdoc
+from datetime import datetime
+from itertools import groupby
 #importar Pillow
 from PIL import Image, ImageDraw
 from PIL import Image
-
 #Conexion to Firebase Storage
 from Pyrebase.firebaseStorage import FirebaseStorage
+
 #Config storage from firebase
 storage = FirebaseStorage()
 
@@ -51,9 +51,11 @@ DFDatos = pd.DataFrame(columns=['Folio',
 def receive_data(app_instance, data):
     print("Datos recibidos", data)
     DFDatos.loc[len(DFDatos.index)]=data
+    
 
 app = gui.AppGui(data_callback=receive_data)
 app.mainloop()
+
 
 #Get date in a friendly format
 def FechaActualCompleta(date):
@@ -143,20 +145,21 @@ for row in range(len(DFDatos.index)):
     width, height = letter  #612 792
 
     #Get UPIITA's logo online
-    Upiita = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv.appspot.com/o/LogoUPIITA.png?alt=media&token=36f618f6-45e0-4f7f-a26b-355759536a3a'
+    Upiita = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv.appspot.com/o/Hoja%20credencial.png?alt=media&token=5e9008f8-f44c-4f24-ab4b-326bab8bdfd9'
 
     #UPIITA's logo localization in PDF file
-    Fondo = myCanvas.drawImage(Upiita,x=width/6,y=height/4,height=450,width=450,mask='auto')
+    Fondo = myCanvas.drawImage(Upiita,x=0,y=0,height=letter[1],width=letter[0],mask='auto')
 
     #Phrases with Helveltica font
     myCanvas.setFont("Helvetica", 50)
     Nombre = ''.join([str(DFDatos.iloc[row,1]),' ', str(DFDatos.iloc[row,2])])
     Apellidos = ''.join([str(DFDatos.iloc[row,3]),' ', str(DFDatos.iloc[row,4])])
-    Empleado = ''.join(['No Empleado o RFC: ',str(DFDatos.iloc[row,9])])
+    Empleado = ''.join([str(DFDatos.iloc[row,9])])
 
     myCanvas.drawCentredString(width/2,700,Nombre)
     myCanvas.drawCentredString(width/2,650,Apellidos)
-    myCanvas.drawCentredString(width/2,590,Empleado)
+    myCanvas.drawCentredString(width/2,590,'No EMPLEADO o RFC: ')
+    myCanvas.drawCentredString(width/2,540,Empleado)
 
     myCanvas.setFont("Helvetica", 30)
     myCanvas.drawCentredString(width/2,450,'VIGENCIA: ')
@@ -226,26 +229,24 @@ for row in range(len(DFDatos.index)):
         npAlpha=np.array(alpha)
         npImage=np.dstack((npImage,npAlpha))
         Image.fromarray(npImage).save(f'Recortes/{nombrePDF}.png')
-    else:
-        pass
 
     #If image doesn't exist, dont try to paste in ID pdf file
     if(os.path.exists(f'Recortes/{nombrePDF}.png')):
         pathCrop = f'Recortes/{nombrePDF}.png'
         Base = myCanvas.drawImage(pathCrop,200,370,height=1055,width=1055,mask='auto')
-    else:
-        pass
+
     #Phrases with Helveltica-Bold font
     myCanvas.setFont("Helvetica-Bold", 200)
     myCanvas.drawString(1300,1100,Nombre)
     myCanvas.drawString(1300,850,Apellidos)
 
     myCanvas.setFont("Helvetica-Bold", 150)
-    myCanvas.drawString(1300,550,DFDatos.iloc[row,6])
+    myCanvas.drawString(1300,600,DFDatos.iloc[row,5])
+    myCanvas.drawString(1300,450,DFDatos.iloc[row,6])
 
     #Phrases with Helveltica font
     myCanvas.setFont("Helvetica", 100)
-    myCanvas.drawString(1300,400,Empleado)
+    myCanvas.drawString(1300,250,Empleado)
     #Date in format m/Y
 
     temp = DFDatos.iloc[row,8].strftime('%m/%Y')
@@ -270,38 +271,157 @@ for row in range(len(DFDatos.index)):
 
         
     input_folder = "./Credenciales"
+    output_folder = "./Credenciales/Redimensionadas"
     filename = nombreCred+".pdf"
 
     input_file = os.path.join(input_folder,filename)
-    output_file = os.path.join(input_folder,filename)
+    output_file = os.path.join(output_folder,nombreCred+"_resized.pdf")
 
+    if(not(os.path.exists('./Credenciales/Redimensionadas'))):
+        os.mkdir('./Credenciales/Redimensionadas')
 
+    target_width, target_height = 85.60 * mm, 53.98 * mm
     # Abre el archivo PDF original
     with open(input_file, "rb") as file:
         # Crea un objeto PDFReader
         reader = PyPDF2.PdfReader(file)
-
         # Crea un objeto PDFWriter para escribir el PDF modificado
         writer = PyPDF2.PdfWriter()
-
         # Itera sobre las páginas del PDF
         for page_num in range(len(reader.pages)):
             page = reader.pages[page_num]
 
-            # Gira la página 180 grados en sentido horario
-            if page_num == 1:  # Cambia el índice de la página aquí
+            # Redimensionar la página al tamaño de la identificación
+            page.scale_to(target_width, target_height)
+
+            # Rotar la segunda página 180 grados en sentido horario
+            if page_num == 1:
                 page.rotate(180)
 
-            # Agrega la página al objeto PDFWriter
+            # Agregar la página al objeto PDFWriter
             writer.add_page(page)
 
         # Guarda el PDF modificado
         with open(output_file, "wb") as output:
             writer.write(output)
+    os.remove(input_file)
+
+# Combinar los PDF redimensionados en un nuevo PDF tamaño "letter"
+
+
+# Obtener todos los archivos PDF redimensionados en la carpeta "Credenciales"
+resized_files = glob.glob("./Credenciales/Redimensionadas/*_resized.pdf")
+
+output_folder = "./Credenciales/Redimensionadas"
+output_file = os.path.join(output_folder,nombreCred+"_resized.png")
+
+# Iterar sobre los archivos PDF redimensionados
+for resized_file in resized_files:
+    input_pdf = resized_file  # Ruta del archivo PDF
+    
+
+    # Dimensiones deseadas en puntos (dpi)
+    target_width_pt = 96.36
+    target_height_pt = 95.817
+
+    # Abrir el archivo PDF
+    pdf = fitz.open(input_pdf)
+
+    # Crear una lista para almacenar las imágenes de cada página
+    images = []
+
+    # Abrir el archivo PDF
+    pdf = fitz.open(input_pdf)
+
+    # Iterar sobre las páginas del PDF
+    for page_num in range(len(pdf)):
+        page = pdf.load_page(page_num)
+
+        # Renderizar la página como imagen
+        pix = page.get_pixmap(matrix=fitz.Matrix(target_width_pt/72, target_height_pt/72))
+
+        # Guardar la imagen como archivo PNG
+        output_image = os.path.join(resized_file,f"{page_num}.png")  # Ruta de salida para la imagen
+        pix.save(output_image, "png")
+
+    # Cerrar el archivo PDF
+    pdf.close()
+
+# Obtener la fecha y hora actual
+now = datetime.now()
+# Formatear la fecha actual en formato "YY-MM-DD-HH-MM"
+date_string = now.strftime("%y-%m-%d-%H-%M")
+
+# Agregar la fecha al nombre del archivo
+output_combined = os.path.join(input_folder, f"Credenciales_{date_string}.pdf")
+
+cred_per_page = 4
+margin_x = 50
+margin_y = 50
+
+
+output_image = output_file = os.path.join(output_folder,nombreCred+f"_resized{page_num}.png")
+
+# Obtener todos los archivos PNG redimensionados en la carpeta "Credenciales"
+resized_files = glob.glob("./Credenciales/Redimensionadas/*_resized*.png")
+
+# Ordenar los archivos por nombre base
+resized_files.sort(key=lambda x: os.path.splitext(os.path.basename(x))[0])
+
+# Obtener la fecha y hora actual
+now = datetime.now()
+# Formatear la fecha actual en formato "YY-MM-DD-HH-MM"
+date_string = now.strftime("%y-%m-%d-%H-%M")
+
+# Agregar la fecha al nombre del archivo
+output_combined = os.path.join(input_folder, f"Credenciales_{date_string}.pdf")
+
+cred_per_page = 4
+margin_x = 50
+margin_y = 50
+
+# Crear nuevo PDF tamaño "letter"
+newPDF = canvas.Canvas(output_combined, pagesize=letter)
+
+# Inicializar las coordenadas x e y
+x = margin_x
+y = margin_y
+
+# Inicializar el contador de credenciales
+cred_count = 0
+
+# Obtener todos los archivos PDF redimensionados en la carpeta "Credenciales"
+resized_files = glob.glob("./Credenciales/Redimensionadas/*_resized*.png")
+
+# Iterar sobre las archivos PNG redimensionados
+for resized_file in resized_files:
+    print(resized_file)
+
+    # Crear un objeto PDFReader
+    pdf_reader = PyPDF2.PdfReader(file)
+
+    # Iterar sobre las páginas del PDF redimensionado
+    for page in pdf_reader.pages:
+        # Agregar la página al nuevo PDF tamaño "letter" en las coordenadas especificadas
+        newPDF.setPageSize(letter)
+        newPDF.drawImage(new_image, x, y)
+
+        # Actualizar el contador de credenciales
+        cred_count += 1
+
+        # Verificar si se alcanzó el límite de credenciales por página
+        if cred_count == cred_per_page:
+            # Reiniciar el contador de credenciales
+            cred_count = 0
+
+            # Agregar salto de página en el nuevo PDF tamaño "letter"
+            newPDF.showPage()
+
+# Guardar y cerrar el nuevo PDF tamaño "letter"
+newPDF.save()
+
 
 #Delete CodigosQR and crop images dir, we dont need it
 shutil.rmtree('./CodigosQR', ignore_errors=True)
 shutil.rmtree('Recortes', ignore_errors=True)
-
-python = sys.executable
-os.execl(python, python, * sys.argv)
+#shutil.rmtree('./Credenciales/Redimensionadas', ignore_errors=True)

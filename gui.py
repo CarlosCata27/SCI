@@ -203,6 +203,18 @@ class AppGui(ctk.CTk):
             responsable.get(),
             fileSelect.get()
             ]
+        
+        nombre.set('')
+        nombre2.set('')
+        apellidoP.set('')
+        apellidoM.set('')
+        puesto.set(list(dropdownElements.keys())[0])
+        area.set(dropdownElements[puesto.get()][0])
+        registro.set('')
+        vigencia.set('')
+        empleado.set('')
+        responsable.set('')
+        fileSelect.set('')
 
         if self.data_callback:
             self.data_callback(self, datos)
