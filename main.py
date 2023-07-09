@@ -279,6 +279,7 @@ for row in range(len(DFDatos.index)):
 
     if(not(os.path.exists('./Credenciales/Redimensionadas'))):
         os.mkdir('./Credenciales/Redimensionadas')
+        os.mkdir('./Credenciales/Redimensionadas/img')
 
     target_width, target_height = 85.60 * mm, 53.98 * mm
     # Abre el archivo PDF original
@@ -309,20 +310,25 @@ for row in range(len(DFDatos.index)):
 # Combinar los PDF redimensionados en un nuevo PDF tamaño "letter"
 
 
-# Obtener todos los archivos PDF redimensionados en la carpeta "Credenciales"
+# Obtener todos los archivos PDF redimensionados en la carpeta "Credenciales/Redimensionados"
 resized_files = glob.glob("./Credenciales/Redimensionadas/*_resized.pdf")
 
-output_folder = "./Credenciales/Redimensionadas"
-output_file = os.path.join(output_folder,nombreCred+"_resized.png")
+""" # Ordenar los archivos por nombre base
+resized_files.sort(key=lambda x: os.path.splitext(os.path.basename(x))[0]) """
 
+output_folder = "./Credenciales/Redimensionadas/img"
+output_file = os.path.join(output_folder,nombreCred+"_resized.png")
+print(resized_files)
 # Iterar sobre los archivos PDF redimensionados
 for resized_file in resized_files:
     input_pdf = resized_file  # Ruta del archivo PDF
     
 
     # Dimensiones deseadas en puntos (dpi)
-    target_width_pt = 96.36
-    target_height_pt = 95.817
+    """ target_width_pt = 96.36
+    target_height_pt = 95.817 """
+    target_width_pt = 300
+    target_height_pt = 300
 
     # Abrir el archivo PDF
     pdf = fitz.open(input_pdf)
@@ -332,6 +338,7 @@ for resized_file in resized_files:
 
     # Abrir el archivo PDF
     pdf = fitz.open(input_pdf)
+    name_without_extension = os.path.splitext(os.path.basename(input_pdf))[0]
 
     # Iterar sobre las páginas del PDF
     for page_num in range(len(pdf)):
@@ -341,44 +348,25 @@ for resized_file in resized_files:
         pix = page.get_pixmap(matrix=fitz.Matrix(target_width_pt/72, target_height_pt/72))
 
         # Guardar la imagen como archivo PNG
-        output_image = os.path.join(resized_file,f"{page_num}.png")  # Ruta de salida para la imagen
+        output_image = os.path.join(output_folder,name_without_extension+f"{page_num}.png")  # Ruta de salida para la imagen
         pix.save(output_image, "png")
 
     # Cerrar el archivo PDF
     pdf.close()
 
+
 # Obtener la fecha y hora actual
 now = datetime.now()
 # Formatear la fecha actual en formato "YY-MM-DD-HH-MM"
-date_string = now.strftime("%y-%m-%d-%H-%M")
+date_string = now.strftime("%y-%m-%d--%H-%M")
+input_folder = "./Credenciales"
 
 # Agregar la fecha al nombre del archivo
 output_combined = os.path.join(input_folder, f"Credenciales_{date_string}.pdf")
 
 cred_per_page = 4
-margin_x = 50
-margin_y = 50
-
-
-output_image = output_file = os.path.join(output_folder,nombreCred+f"_resized{page_num}.png")
-
-# Obtener todos los archivos PNG redimensionados en la carpeta "Credenciales"
-resized_files = glob.glob("./Credenciales/Redimensionadas/*_resized*.png")
-
-# Ordenar los archivos por nombre base
-resized_files.sort(key=lambda x: os.path.splitext(os.path.basename(x))[0])
-
-# Obtener la fecha y hora actual
-now = datetime.now()
-# Formatear la fecha actual en formato "YY-MM-DD-HH-MM"
-date_string = now.strftime("%y-%m-%d-%H-%M")
-
-# Agregar la fecha al nombre del archivo
-output_combined = os.path.join(input_folder, f"Credenciales_{date_string}.pdf")
-
-cred_per_page = 4
-margin_x = 50
-margin_y = 50
+margin_x = 30
+margin_y = 600
 
 # Crear nuevo PDF tamaño "letter"
 newPDF = canvas.Canvas(output_combined, pagesize=letter)
@@ -389,33 +377,57 @@ y = margin_y
 
 # Inicializar el contador de credenciales
 cred_count = 0
+frontal=0
+horizontal=1
+
+target_width, target_height = 85.60 * mm, 53.98 * mm
 
 # Obtener todos los archivos PDF redimensionados en la carpeta "Credenciales"
-resized_files = glob.glob("./Credenciales/Redimensionadas/*_resized*.png")
+resized_files = glob.glob("./Credenciales/Redimensionadas/img/*.png")
+
+# Ordenar los archivos por nombre base
+resized_files.sort(key=lambda x: os.path.splitext(os.path.basename(x))[0])
+#y1=600,y2=447,x=30
+#y1=600,y2=447,x=320
+
+#y1=300,y2=147,x=30
+#y1=300,y2=147,x=320
 
 # Iterar sobre las archivos PNG redimensionados
 for resized_file in resized_files:
+    
     print(resized_file)
 
-    # Crear un objeto PDFReader
-    pdf_reader = PyPDF2.PdfReader(file)
+    # Agregar la página al nuevo PDF tamaño "letter" en las coordenadas especificadas
+    #newPDF.setPageSize(letter)
+    if frontal ==0:
+        newPDF.drawImage(resized_file,x=x,y=y,height=target_height,width=target_width,mask='auto')
+        frontal+=1
+    elif frontal==1:
+        newPDF.drawImage(resized_file,x=x,y=y-153,height=target_height,width=target_width,mask='auto')
+        frontal=0
+        if horizontal==1:
+            horizontal+=1
+            x=320
+        else:
+            horizontal=1
+            x=margin_x
+            y = 250
 
-    # Iterar sobre las páginas del PDF redimensionado
-    for page in pdf_reader.pages:
-        # Agregar la página al nuevo PDF tamaño "letter" en las coordenadas especificadas
-        newPDF.setPageSize(letter)
-        newPDF.drawImage(new_image, x, y)
 
-        # Actualizar el contador de credenciales
-        cred_count += 1
+    # Actualizar el contador de credenciales
+    cred_count += 1
 
-        # Verificar si se alcanzó el límite de credenciales por página
-        if cred_count == cred_per_page:
-            # Reiniciar el contador de credenciales
-            cred_count = 0
+    # Verificar si se alcanzó el límite de credenciales por página
+    if cred_count == (2*cred_per_page):
+        # Reiniciar el contador de credenciales
+        cred_count = 0
 
-            # Agregar salto de página en el nuevo PDF tamaño "letter"
-            newPDF.showPage()
+        # Agregar salto de página en el nuevo PDF tamaño "letter"
+        newPDF.showPage()
+        x = margin_x
+        y = margin_y
+        
 
 # Guardar y cerrar el nuevo PDF tamaño "letter"
 newPDF.save()
@@ -424,4 +436,4 @@ newPDF.save()
 #Delete CodigosQR and crop images dir, we dont need it
 shutil.rmtree('./CodigosQR', ignore_errors=True)
 shutil.rmtree('Recortes', ignore_errors=True)
-#shutil.rmtree('./Credenciales/Redimensionadas', ignore_errors=True)
+shutil.rmtree('./Credenciales/Redimensionadas/img', ignore_errors=True)
