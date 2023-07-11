@@ -2,6 +2,5 @@
 *.pdf
 *.png
 *.jpg
-main.py
-dist/CredencialesRealizadas.xlsx
+*.exe
 dist/CredencialesRealizadas.xlsx
