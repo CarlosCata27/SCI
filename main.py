@@ -92,9 +92,7 @@ def consecutivoFolio(Dataframe):
     print(DFFolios)
     for i in range(len(DFFolios.index)):
         Consecutivo = str(numero).zfill(padding)
-        print(numero)
         Folio = "SCI"+Anio+Consecutivo
-        print(Folio)
         DFFolios.iloc[i,0] = Folio
 
         numero+=1
@@ -110,8 +108,6 @@ else:
     Dataframe = pd.concat([DFExistentes,DFDatos],ignore_index=True)
 
     Dataframe = consecutivoFolio(Dataframe)
-
-print(Dataframe)
 
 #with pd.ExcelWriter(fileName, mode='w', engine='openpyxl') as writer:
 Dataframe.to_excel(fileName, index=False)
@@ -132,6 +128,10 @@ if(not(os.path.exists('PDFs'))):
     os.mkdir('PDFs')
 if(not(os.path.exists('Credenciales'))):
     os.mkdir('Credenciales')
+if(not(os.path.exists('./Credenciales/Redimensionadas'))):
+    os.mkdir('./Credenciales/Redimensionadas')
+if(not(os.path.exists('./Credenciales/Redimensionadas/img'))):
+    os.mkdir('./Credenciales/Redimensionadas/img')
 
 
 
@@ -277,10 +277,6 @@ for row in range(len(DFDatos.index)):
     input_file = os.path.join(input_folder,filename)
     output_file = os.path.join(output_folder,nombreCred+"_resized.pdf")
 
-    if(not(os.path.exists('./Credenciales/Redimensionadas'))):
-        os.mkdir('./Credenciales/Redimensionadas')
-        os.mkdir('./Credenciales/Redimensionadas/img')
-
     target_width, target_height = 85.60 * mm, 53.98 * mm
     # Abre el archivo PDF original
     with open(input_file, "rb") as file:
@@ -307,18 +303,15 @@ for row in range(len(DFDatos.index)):
             writer.write(output)
     os.remove(input_file)
 
+
 # Combinar los PDF redimensionados en un nuevo PDF tamaño "letter"
 
 
 # Obtener todos los archivos PDF redimensionados en la carpeta "Credenciales/Redimensionados"
 resized_files = glob.glob("./Credenciales/Redimensionadas/*_resized.pdf")
 
-""" # Ordenar los archivos por nombre base
-resized_files.sort(key=lambda x: os.path.splitext(os.path.basename(x))[0]) """
-
 output_folder = "./Credenciales/Redimensionadas/img"
-output_file = os.path.join(output_folder,nombreCred+"_resized.png")
-print(resized_files)
+
 # Iterar sobre los archivos PDF redimensionados
 for resized_file in resized_files:
     input_pdf = resized_file  # Ruta del archivo PDF
@@ -396,7 +389,6 @@ resized_files.sort(key=lambda x: os.path.splitext(os.path.basename(x))[0])
 # Iterar sobre las archivos PNG redimensionados
 for resized_file in resized_files:
     
-    print(resized_file)
 
     # Agregar la página al nuevo PDF tamaño "letter" en las coordenadas especificadas
     #newPDF.setPageSize(letter)
@@ -433,7 +425,16 @@ for resized_file in resized_files:
 newPDF.save()
 
 
+if(not(os.path.exists('./Credenciales/Realizadas'))):
+    os.mkdir('./Credenciales/Realizadas')
+
+resized_files = glob.glob("./Credenciales/Redimensionadas/*.pdf")
+for file in resized_files:
+    shutil.move(file, './Credenciales/Realizadas')
+
+
 #Delete CodigosQR and crop images dir, we dont need it
 shutil.rmtree('./CodigosQR', ignore_errors=True)
 shutil.rmtree('Recortes', ignore_errors=True)
 shutil.rmtree('./Credenciales/Redimensionadas/img', ignore_errors=True)
+shutil.rmtree('./Credenciales/Redimensionadas', ignore_errors=True)

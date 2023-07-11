@@ -2,3 +2,6 @@
 *.pdf
 *.png
 *.jpg
+main.py
+dist/CredencialesRealizadas.xlsx
+dist/CredencialesRealizadas.xlsx
