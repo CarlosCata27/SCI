@@ -74,9 +74,7 @@ class FormFrame(ctk.CTkFrame):
                 #Actualizar las opciones del segundo ComboBox
                 comboArea.configure(values=subOpciones)
                 comboArea.set(subOpciones[0])
-                print("aqui 1")
             else:
-                print("aqui 2")
                 comboArea.set('')
                 comboArea["values"] = []
 
@@ -91,7 +89,6 @@ class FormFrame(ctk.CTkFrame):
         global area
         area = tk.StringVar()
         opcionesArea = dropdownElements[puesto.get()]
-        print(opcionesArea)
         labelArea = ctk.CTkLabel(self, text="Area:", font=NormalFont)
         labelArea.grid(row=4, column=2, padx=20, pady=5, sticky=tk.E)
         comboArea = ctk.CTkComboBox(self, variable=area, values=opcionesArea)
@@ -145,7 +142,6 @@ class FormFrame(ctk.CTkFrame):
             file = fd.askopenfilename(filetypes=(("Img files",".png .jpg .jpeg .webp"),("All files","*.*")))
             fileSelect.set(file)
             #DFDatos.iloc[row,9]=filePad
-            print(fileSelect)
             textURLimg.configure(text=file)
             #ent1.insert(tk.END, filename) # add this
 

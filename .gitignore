@@ -4,3 +4,4 @@
 *.jpg
 *.exe
 dist/CredencialesRealizadas.xlsx
+build/main/main.pkg

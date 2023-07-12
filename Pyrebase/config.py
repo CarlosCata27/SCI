@@ -1,8 +1,9 @@
 firebaseConfig = {
-    "apiKey": "AIzaSyA_QQZNU0vBCJhhmedvg-X1xDnBi2w44BA",
-    "authDomain": "credenciales-uteycv.firebaseapp.com",
-    "projectId": "credenciales-uteycv",
-    "storageBucket": "credenciales-uteycv.appspot.com",
-    "messagingSenderId": "722175152275",
-    "appId": "1:722175152275:web:8ac288aa49373e7259bd66",
-    "measurementId": "G-Q6BCTG1MEB"}
+  'apiKey': "AIzaSyAQRm1XsWtSPsaSbyrLsvbbNU_ZKGJTfnA",
+  'authDomain': "credenciales-uteycv-1.firebaseapp.com",
+  'projectId': "credenciales-uteycv-1",
+  'storageBucket': "credenciales-uteycv-1.appspot.com",
+  'messagingSenderId': "628001301711",
+  'appId': "1:628001301711:web:512852a64b16e25fbe03ba",
+  'measurementId': "G-KS58P62MS4"
+}

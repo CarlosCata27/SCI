@@ -19,21 +19,57 @@ from PIL import Image, ImageDraw
 from PIL import Image
 #Conexion to Firebase Storage
 from Pyrebase.firebaseStorage import FirebaseStorage
+from pymongo.mongo_client import MongoClient
 
 #Config storage from firebase
 storage = FirebaseStorage()
 
-#Nombre del archivo de base de datos?
-fileName = 'CredencialesRealizadas.xlsx'
-archivoNuevo = False
 
-if(os.path.exists(fileName)):
-    archivoNuevo = False
-    DFExistentes = pd.read_excel(fileName)
-else:
-    archivoNuevo = True
-    newExcel = openpyxl.Workbook()
-    newExcel.save(fileName)
+
+uri = "mongodb+srv://UTEyCV:eRe10sM6tPN07A2P@cluster0.sxbnxgj.mongodb.net/"
+client = MongoClient(uri)
+db = client['UTEyCV']
+collection = db["Credenciales"]
+
+def consecutivoFolio(Dataframe):
+    #SCI, año YY, ##
+    Anio = str(datetime.now().year)
+    Anio = Anio[-2:]
+    padding=4
+
+    registros = collection.find()    
+    DFFolios = Dataframe[Dataframe['Folio'] == 0]
+
+    ultimo_registro = None
+    
+    if not(registros.count()==0):
+        
+        for registro in registros:
+            ultimo_registro = registro
+        
+        numero = int(ultimo_registro['Folio'][-4:])+1
+    else:
+        numero = 1
+
+    for i in range(len(DFFolios.index)): 
+        Consecutivo = str(numero).zfill(padding)
+        Folio = "SCI"+Anio+Consecutivo
+        DFFolios.iloc[i,0] = Folio
+
+        numero+=1
+        
+    return DFFolios
+
+# Obtener la fecha y hora actual
+now = datetime.now()
+# Formatear la fecha actual en formato "YY-MM-DD-HH-MM"
+date_string = now.strftime("%y-%m-%d--%H-%M")
+
+#Nombre del archivo de base de datos?
+fileName = f'Credenciales-{date_string}.xlsx'
+
+newExcel = openpyxl.Workbook()
+newExcel.save(fileName)
 
 
 DFDatos = pd.DataFrame(columns=['Folio',
@@ -74,48 +110,19 @@ DFDatos['Nombre 2'] = DFDatos['Nombre 2'].replace(pd.NA,'')
 
 DFDatos['Vigencia'] = pd.to_datetime(DFDatos['Vigencia'], format="%d/%m/%Y")
 
-def consecutivoFolio(Dataframe):
-    #SCI, año YY, ##
-    Anio = str(datetime.now().year)
-    Anio = Anio[-2:]
-    padding=4
+DFAux = consecutivoFolio(DFDatos)
 
-    DFReal = Dataframe[Dataframe['Folio'] != 0]
-    DFFolios = Dataframe[Dataframe['Folio'] == 0]
-    
-    if(not(DFReal.empty)):
-        registrosExistentes = len(DFReal.index)
-        numero = int(DFReal.iloc[registrosExistentes-1,0][-4:])+1
-    else:
-        numero = 1
-
-    print(DFFolios)
-    for i in range(len(DFFolios.index)):
-        Consecutivo = str(numero).zfill(padding)
-        Folio = "SCI"+Anio+Consecutivo
-        DFFolios.iloc[i,0] = Folio
-
-        numero+=1
-        
-    DFAux = pd.concat([DFReal,DFFolios],ignore_index=True)
-    return DFAux
-
-if (archivoNuevo == True):
-    DFAux = consecutivoFolio(DFDatos)
+if not DFAux.empty:
+    #INSERTAR REGISTROS A MONGO
+    registros = DFAux.to_dict(orient="records")
+    collection.insert_many(registros)
     Dataframe = DFAux
+
+    Dataframe.to_excel(fileName, index=False)
+
+    registrosCreados = len(DFDatos.index)
+    DFDatos = Dataframe
 else:
-    #Concatenacion de los registros hechos desde la GUI a los registros que obtuvimos del excel
-    Dataframe = pd.concat([DFExistentes,DFDatos],ignore_index=True)
-
-    Dataframe = consecutivoFolio(Dataframe)
-
-#with pd.ExcelWriter(fileName, mode='w', engine='openpyxl') as writer:
-Dataframe.to_excel(fileName, index=False)
-
-registrosCreados = len(DFDatos.index)
-DFDatos = Dataframe.tail(registrosCreados)
-
-if(DFDatos.empty):
     sys.exit()
 
 #DFDatos.to_excel('CredencialesRealizadas.xlsx')
@@ -145,7 +152,7 @@ for row in range(len(DFDatos.index)):
     width, height = letter  #612 792
 
     #Get UPIITA's logo online
-    Upiita = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv.appspot.com/o/Hoja%20credencial.png?alt=media&token=5e9008f8-f44c-4f24-ab4b-326bab8bdfd9'
+    Upiita = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv-1.appspot.com/o/Hoja%20credencial.png?alt=media&token=708ca05f-47c3-4f50-ab48-7e7a31b619b3'
 
     #UPIITA's logo localization in PDF file
     Fondo = myCanvas.drawImage(Upiita,x=0,y=0,height=letter[1],width=letter[0],mask='auto')
@@ -199,7 +206,7 @@ for row in range(len(DFDatos.index)):
 
     #Set image background
     myCanvas = canvas.Canvas(f'Credenciales/{nombreCred}.pdf', pagesize=(3322,2214))
-    url = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv.appspot.com/o/1.png?alt=media&token=45f62ed5-23d7-47f2-9de5-67aab19e9d1c'
+    url = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv-1.appspot.com/o/1.png?alt=media&token=5f2da279-c856-4f42-af0f-12838621fb19'
     Base = myCanvas.drawImage(url,0,0,height=2214,width=3322,mask='auto')
 
     #Image selection from Fotos ID
@@ -257,7 +264,7 @@ for row in range(len(DFDatos.index)):
     #Get QR Code saved in a local dir
     pathQR = f'CodigosQR/{nombrePDF}.png'
     #Set image background
-    url = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv.appspot.com/o/2.png?alt=media&token=d8badf27-6bd9-4b0a-b541-6a3b974ae7e8'
+    url = 'https://firebasestorage.googleapis.com/v0/b/credenciales-uteycv-1.appspot.com/o/2.png?alt=media&token=1ea896ea-1168-4e19-9add-a091c50dd5c3'
     Base = myCanvas.drawImage(url,0,0,height=2214,width=3322,mask='auto')
     #Set QR Code in the specified position
     Base = myCanvas.drawImage(pathQR,300,520,height=1050,width=1050,mask='auto')
